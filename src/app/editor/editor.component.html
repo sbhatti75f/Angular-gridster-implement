@@ -1,0 +1,9 @@
+<ul id="context-menu" #contextMenu class="hidden">
+    <li (click)="addImage()"> Add Image (0 MB/5 MB)</li>
+    <li (click)="addText()"> Add Text</li>
+</ul>
+
+<app-text *ngIf="showTextEditor" (discard)="onDiscardText()"></app-text>
+
+
+
