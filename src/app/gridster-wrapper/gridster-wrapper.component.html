@@ -1,0 +1,16 @@
+<gridster [options]="options" class="gridster-wrapper">
+  <gridster-item *ngFor="let item of items; let i = index" [item]="item">
+
+    <app-text-area 
+      *ngIf="item.type === 'text'" 
+      (editableRef)="setEditableDiv(i, $event)" 
+      (focusChanged)="onFocusChange(i, $event)">
+    </app-text-area>
+
+    <app-text-bar
+      *ngIf="focusedIndex === i"
+      [editableDiv]="editableDivMap[i]">
+    </app-text-bar>
+
+  </gridster-item>
+</gridster>

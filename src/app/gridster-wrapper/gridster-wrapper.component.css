@@ -1,0 +1,17 @@
+
+.gridster-wrapper {
+  width: 100%;
+  min-height: 500px;
+  background: transparent; 
+}
+
+gridster-item {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: white;      
+  border: 1px solid #ccc;  
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 8px;
+}
