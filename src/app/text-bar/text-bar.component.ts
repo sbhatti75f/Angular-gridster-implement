@@ -1,57 +1,205 @@
-import { Component, ViewChild, ElementRef, Renderer2, AfterViewInit, Input, OnChanges, SimpleChanges} from '@angular/core';
+import { Component, ViewChild, ElementRef, Renderer2, AfterViewInit, Input, OnChanges, SimpleChanges, Output, EventEmitter} from '@angular/core';
 
 @Component({
   selector: 'app-text-bar',
   templateUrl: './text-bar.component.html',
   styleUrls: ['./text-bar.component.css']
 })
-export class TextBarComponent implements OnChanges {
-    @ViewChild('editorWrapper') editorWrapper!: ElementRef;
-    @ViewChild('textAreaContainer') container!: ElementRef;
-    @ViewChild('resizer') resizer!: ElementRef;
-    @ViewChild('actionBar') actionBar!: ElementRef; 
-    @ViewChild('textColorIcon') textColorIcon!: ElementRef<SVGSVGElement>;
+export class TextBarComponent implements OnChanges, AfterViewInit {
+     @ViewChild('textColorIcon') textColorIcon!: ElementRef<SVGSVGElement>;
 
-    @Input() editableDiv!: ElementRef;
+  @Input() editableDiv!: ElementRef;
+  @Input() styleState: any;
+  @Output() styleChanged = new EventEmitter<any>();
 
-    showTextColorInput: boolean = false;
-    showBackColorInput: boolean = false;
-    showBorderColorInput: boolean = false;
-    selectedColor: string = '#000000';
-    private savedSelection: Range | null = null;
+  isBoldActive = false;
+  isItalicActive = false;
+  selectedColor = '#000000';
+  selectedBackgroundColor = '#ffffff';
+  selectedBorderColor = '#cccccc';
+  selectedTextAlign = 'left';
+  selectedVerticalAlign = 'top';
+  selectedFontSize = 'medium';
 
-    isBoldActive = false;
-    isItalicActive = false;
+  showTextColorInput = false;
+  showBackColorInput = false;
+  showBorderColorInput = false;
 
-    constructor(private renderer: Renderer2) {}
+  private savedSelection: Range | null = null;
 
-    ngOnChanges(changes: SimpleChanges): void {
-    if (changes['editableDiv'] && this.editableDiv) {
-      this.initializeToolbar();
+  private fontSizeMap: { [key: string]: string } = {
+    small: '12px',
+    medium: '16px',
+    large: '24px',
+    xlarge: '32px'
+  };
+
+  constructor(private renderer: Renderer2, private elRef: ElementRef) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['styleState'] && this.styleState && this.editableDiv) {
+      this.applyStyleStateToUI(this.styleState);
     }
   }
 
-  private initializeToolbar(): void {
-    this.setupSvgClickToggles();
-    this.setupDropdowns();
-    this.setupStyleButtons();
-    this.setupDeleteHandler();
+  ngAfterViewInit(): void {
+    if (this.styleState && this.editableDiv) {
+      setTimeout(() => {
+        this.applyStyleStateToUI(this.styleState);
+        this.initializeToolbar(); // ✅ CALL IT HERE
+      }, 0);
+    }
+  }
 
-    this.renderer.listen(this.editableDiv.nativeElement, 'mouseup', () => {
-      this.saveSelection();
-    });
-    this.renderer.listen(this.editableDiv.nativeElement, 'keyup', () => {
-      this.saveSelection();
-    });
 
-    this.renderer.listen(this.editableDiv.nativeElement, 'click', (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'A') {
-        event.preventDefault();
-        const url = (target as HTMLAnchorElement).href;
-        window.open(url, '_blank');
-      }
+  private applyStyleStateToUI(state: any): void {
+    const editable = this.editableDiv?.nativeElement;
+    if (!editable) return;
+
+    editable.style.fontWeight = state.fontWeight || 'normal';
+    editable.style.fontStyle = state.fontStyle || 'normal';
+    editable.style.fontSize = this.fontSizeMap[state.fontSize || 'medium'];
+    editable.style.textAlign = state.textAlign || 'left';
+    editable.style.color = state.color || '#000000';
+    editable.style.backgroundColor = state.backgroundColor || '#ffffff';
+    editable.style.borderColor = state.borderColor || '#cccccc';
+    editable.style.display = 'flex';
+    editable.style.flexDirection = 'column';
+    editable.style.justifyContent = this.getFlexValue(state.verticalAlign || 'top');
+
+    this.isBoldActive = state.fontWeight === 'bold';
+    this.isItalicActive = state.fontStyle === 'italic';
+    this.selectedFontSize = state.fontSize || 'medium';
+    this.selectedColor = state.color || '#000000';
+    this.selectedBackgroundColor = state.backgroundColor || '#ffffff';
+    this.selectedBorderColor = state.borderColor || '#cccccc';
+    this.selectedTextAlign = state.textAlign || 'left';
+    this.selectedVerticalAlign = state.verticalAlign || 'top';
+  }
+
+  private emitStyleState(): void {
+    this.styleChanged.emit({
+      fontWeight: this.isBoldActive ? 'bold' : 'normal',
+      fontStyle: this.isItalicActive ? 'italic' : 'normal',
+      fontSize: this.selectedFontSize,
+      color: this.selectedColor,
+      backgroundColor: this.selectedBackgroundColor,
+      borderColor: this.selectedBorderColor,
+      textAlign: this.selectedTextAlign,
+      verticalAlign: this.selectedVerticalAlign
     });
+  }
+
+  toggleBold(): void {
+    this.isBoldActive = !this.isBoldActive;
+    this.editableDiv.nativeElement.style.fontWeight = this.isBoldActive ? 'bold' : 'normal';
+    this.emitStyleState();
+  }
+
+  toggleItalic(): void {
+    this.isItalicActive = !this.isItalicActive;
+    this.editableDiv.nativeElement.style.fontStyle = this.isItalicActive ? 'italic' : 'normal';
+    this.emitStyleState();
+  }
+
+  changeFontSize(size: string): void {
+    this.selectedFontSize = size;
+    const pxSize = this.fontSizeMap[size] || '16px';
+    this.editableDiv.nativeElement.style.fontSize = pxSize;
+    this.emitStyleState();
+  }
+
+  changeTextColor(color: string): void {
+    this.selectedColor = color;
+    this.editableDiv.nativeElement.style.color = color;
+
+    const iconSvg = this.textColorIcon?.nativeElement;
+    const useTag = iconSvg?.querySelector('use');
+    if (iconSvg && useTag) {
+      iconSvg.style.fill = color;
+      useTag.setAttribute('fill', color);
+    }
+
+    this.emitStyleState();
+  }
+
+  changeBackgroundColor(color: string): void {
+    this.selectedBackgroundColor = color;
+    this.editableDiv.nativeElement.style.backgroundColor = color;
+    this.emitStyleState();
+  }
+
+  changeBorderColor(color: string): void {
+    this.selectedBorderColor = color;
+    this.editableDiv.nativeElement.style.borderColor = color;
+    this.emitStyleState();
+  }
+
+  changeTextAlign(align: string): void {
+    this.selectedTextAlign = align;
+    this.editableDiv.nativeElement.style.textAlign = align;
+    this.emitStyleState();
+  }
+
+  changeVerticalAlign(align: string): void {
+    this.selectedVerticalAlign = align;
+    const editable = this.editableDiv.nativeElement;
+    editable.style.display = 'flex';
+    editable.style.flexDirection = 'column';
+    editable.style.justifyContent = this.getFlexValue(align);
+    this.emitStyleState();
+  }
+
+  private getFlexValue(val: string): string {
+    return {
+      top: 'flex-start',
+      middle: 'center',
+      bottom: 'flex-end'
+    }[val] || 'flex-start';
+  }
+
+  saveSelection(): void {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      this.savedSelection = sel.getRangeAt(0);
+    }
+  }
+
+  restoreSelection(): void {
+    if (this.savedSelection) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(this.savedSelection);
+    }
+  }
+
+  handleColorIconClick(type: 'text' | 'background' | 'border') {
+    this.showTextColorInput = type === 'text';
+    this.showBackColorInput = type === 'background';
+    this.showBorderColorInput = type === 'border';
+  }
+
+    private initializeToolbar(): void {
+      this.setupSvgClickToggles();
+      this.setupDropdowns();
+      this.setupStyleButtons();
+      this.setupDeleteHandler();
+
+      this.renderer.listen(this.editableDiv.nativeElement, 'mouseup', () => {
+        this.saveSelection();
+      });
+      this.renderer.listen(this.editableDiv.nativeElement, 'keyup', () => {
+        this.saveSelection();
+      });
+
+      this.renderer.listen(this.editableDiv.nativeElement, 'click', (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'A') {
+          event.preventDefault();
+          const url = (target as HTMLAnchorElement).href;
+          window.open(url, '_blank');
+        }
+      });
 
     this.renderer.listen('document', 'click', (event: MouseEvent) => {
       const clickedEl = event.target as HTMLElement;
@@ -71,27 +219,6 @@ export class TextBarComponent implements OnChanges {
   }
 
     /*************************************************/
-
-    private saveSelection(): void {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          this.savedSelection = selection.getRangeAt(0);
-        }
-    }
-
-    private restoreSelection(): void {
-      if (this.savedSelection) {
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(this.savedSelection);
-      }
-    }
-
-    handleColorIconClick(type: 'text' | 'background' | 'border') {
-      this.showTextColorInput = type === 'text' ? !this.showTextColorInput : false;
-      this.showBackColorInput = type === 'background' ? !this.showBackColorInput : false;
-      this.showBorderColorInput = type === 'border' ? !this.showBorderColorInput : false;
-    }
 
     private setupSvgClickToggles(): void {
       const icons = document.querySelectorAll('.svg-default');
@@ -133,6 +260,7 @@ export class TextBarComponent implements OnChanges {
       dashes.forEach((useEl) => {
         (useEl as SVGUseElement).setAttribute('fill', this.selectedColor);
       });
+      this.emitStyleState();
     }
 
     applyBackgroundColor(): void {
@@ -259,17 +387,17 @@ export class TextBarComponent implements OnChanges {
               currentAlignIcon.innerHTML = replacement.innerHTML;
             }
 
-            if (this.editableDiv?.nativeElement && alignType) {
-              const alignMap: any = {
-                left: 'flex-start',
-                center: 'center',
-                right: 'flex-end'
-              };
+           if (this.editableDiv?.nativeElement && alignType) {
+            const alignTextMap: any = {
+              left: 'left',
+              center: 'center',
+              right: 'right'
+            };
 
-              const editable = this.editableDiv.nativeElement;
-              editable.style.display = 'flex';
-              editable.style.alignItems = alignMap[alignType];
-            }
+            const editable = this.editableDiv.nativeElement;
+            editable.style.textAlign = alignTextMap[alignType];
+          }
+            
 
             alignmentControl.classList.remove('active');
           });

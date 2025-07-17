@@ -1,5 +1,7 @@
 <gridster [options]="options" class="gridster-wrapper">
-  <gridster-item *ngFor="let item of items; let i = index" [item]="item">
+  <gridster-item *ngFor="let item of items; let i = index" 
+                  [item]="item"
+                  [ngClass]="{ 'focused': focusedIndex === i }">
 
     <app-text-area 
       *ngIf="item.type === 'text'" 
@@ -9,7 +11,9 @@
 
     <app-text-bar
       *ngIf="focusedIndex === i"
-      [editableDiv]="editableDivMap[i]">
+      [editableDiv]="editableDivMap[i]"
+      [styleState]="styleStateMap[i]"
+      (styleChanged)="onStyleChanged(i, $event)">
     </app-text-bar>
 
   </gridster-item>

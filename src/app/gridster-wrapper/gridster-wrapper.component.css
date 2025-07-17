@@ -5,13 +5,21 @@
   background: transparent; 
 }
 
+gridster-item.focused {
+  border: 1px solid #ccc;
+}
+
 gridster-item {
   display: block;
   width: 100%;
   height: 100%;
   background: white;      
-  border: 1px solid #ccc;  
+  border: 1px solid transparent;
+  transition: border 0.2s ease; 
   overflow: visible;
   box-sizing: border-box;
-  padding: 8px;
 }
+
+
+
+
