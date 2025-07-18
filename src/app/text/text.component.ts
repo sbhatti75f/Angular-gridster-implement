@@ -2,9 +2,11 @@ import {
   Component,
   Input,
   Output,
-  EventEmitter
+  EventEmitter,
+  ViewChild
 } from '@angular/core';
 import { GridsterItem } from 'angular-gridster2';
+import { GridsterWrapperComponent } from '../gridster-wrapper/gridster-wrapper.component'; // Adjust path as needed
 
 @Component({
   selector: 'app-text',
@@ -12,9 +14,11 @@ import { GridsterItem } from 'angular-gridster2';
   styleUrls: ['./text.component.css']
 })
 export class TextComponent {
-  @Input() items: (GridsterItem & { type: 'text' | 'image' })[] = [];
+  @Input() items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   @Output() saveChangesRequested = new EventEmitter<void>();
   @Output() discardChangesRequested = new EventEmitter<void>();
+  
+  @ViewChild(GridsterWrapperComponent) gridsterWrapper!: GridsterWrapperComponent;
 
   triggerSave(): void {
     this.saveChangesRequested.emit();
@@ -23,8 +27,13 @@ export class TextComponent {
   triggerDiscard(): void {
     this.discardChangesRequested.emit();
   }
-  deleteItem(index: number) {
-    this.items.splice(index, 1);
-  }
 
+  deleteItem(index: number) {
+    const itemId = this.items[index].id;
+    this.items.splice(index, 1);
+    
+    if (this.gridsterWrapper) {
+      this.gridsterWrapper.cleanUpState(itemId);
+    }
+  }
 }

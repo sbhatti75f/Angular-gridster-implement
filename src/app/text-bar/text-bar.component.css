@@ -226,7 +226,7 @@
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   flex-direction: row;
-  z-index: 1000;
+  z-index: 10000;
   gap: 0;
 }
 

@@ -1,23 +1,22 @@
 <gridster [options]="options" class="gridster-wrapper">
   <gridster-item *ngFor="let item of items; let i = index" 
-                  [item]="item"
-                  [ngClass]="{ 'focused': focusedIndex === i }">
+                [item]="item"
+                [ngClass]="{ 'focused': focusedId === item.id }">
 
     <app-text-area
       *ngIf="item.type === 'text'" 
-      [styleState]="styleStateMap[i]"
-      (editableRef)="setEditableDiv(i, $event)" 
-      (focusChanged)="onFocusChange(i, $event)">
+      [styleState]="styleStateMap[item.id]"
+      (editableRef)="setEditableDiv(item.id, $event)" 
+      (focusChanged)="onFocusChange(item.id, $event)">
     </app-text-area>
 
     <app-text-bar
-      *ngIf="focusedIndex === i"
-      [editableDiv]="editableDivMap[i]"
-      [styleState]="styleStateMap[i]"
-      (styleChanged)="onStyleChanged(i, $event)"
+      *ngIf="focusedId === item.id"
+      [editableDiv]="editableDivMap[item.id]"
+      [styleState]="styleStateMap[item.id]"
+      (styleChanged)="onStyleChanged(item.id, $event)"
       (deleteClicked)="deleteItemRequested.emit(i)">
     </app-text-bar>
-
 
   </gridster-item>
 </gridster>

@@ -16,9 +16,8 @@ import { GridsterConfig, GridsterItem } from 'angular-gridster2';
   styleUrls: ['./gridster-wrapper.component.css']
 })
 export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
-  @Input() items: (GridsterItem & { type: 'text' | 'image' })[] = [];
+  @Input() items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   @Output() deleteItemRequested = new EventEmitter<number>();
-
 
   options: GridsterConfig = {
     draggable: {
@@ -33,8 +32,9 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     minRows: 6
   };
 
-  focusedIndex: number | null = null;
-  editableDivMap: { [index: number]: ElementRef } = {};
+  focusedId: number | null = null;  // Now tracking by ID instead of index
+  editableDivMap: { [id: number]: ElementRef } = {};
+  styleStateMap: { [id: number]: any } = {};  // Using ID as key
 
   private globalClickUnlisten!: () => void;
 
@@ -44,7 +44,7 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     this.globalClickUnlisten = this.renderer.listen('document', 'click', (event: MouseEvent) => {
       const clickedInside = this.hostRef.nativeElement.contains(event.target);
       if (!clickedInside) {
-        this.focusedIndex = null;
+        this.focusedId = null;
       }
     });
   }
@@ -55,33 +55,44 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  styleStateMap: { [index: number]: any } = {};  // for retaining the state of text-bar for every particular gridster
+  onFocusChange(id: number, isFocused: boolean) {
+    this.focusedId = isFocused ? id : null;
 
-  onFocusChange(index: number, isFocused: boolean) {
-  this.focusedIndex = isFocused ? index : null;
+    if (isFocused && !this.styleStateMap[id]) {
+      this.styleStateMap[id] = this.getDefaultStyleState();
+    }
+  }
 
-  if (isFocused && !this.styleStateMap[index]) {
-    this.styleStateMap[index] = {
-      fontWeight: 'normal',              
-      fontStyle: 'normal',              
-      fontSize: 'medium',               
-      textAlign: 'left',                
-      verticalAlign: 'top',              
-      color: '#000000',                  
-      backgroundColor: '#ffffff',        
-      borderColor: '#cccccc',            
-      link: '',                          
-      deleted: false                    
+  onStyleChanged(id: number, updatedStyle: any) {
+    this.styleStateMap[id] = { ...updatedStyle };
+  }
+
+  setEditableDiv(id: number, ref: ElementRef) {
+    this.editableDivMap[id] = ref;
+  }
+
+  // Helper method to get default style state
+  private getDefaultStyleState() {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      fontSize: 'medium',
+      textAlign: 'left',
+      verticalAlign: 'top',
+      color: '#000000',
+      backgroundColor: '#ffffff',
+      borderColor: '#cccccc',
+      link: '',
+      deleted: false
     };
   }
-}
 
-
-  onStyleChanged(index: number, updatedStyle: any) {
-    this.styleStateMap[index] = { ...updatedStyle };
-  }
-
-  setEditableDiv(index: number, ref: ElementRef) {
-    this.editableDivMap[index] = ref;
+  // Clean up state when an item is deleted
+  cleanUpState(id: number) {
+    delete this.styleStateMap[id];
+    delete this.editableDivMap[id];
+    if (this.focusedId === id) {
+      this.focusedId = null;
+    }
   }
 }

@@ -21,7 +21,7 @@ export class EditorComponent implements AfterViewInit {
   @ViewChild('textAreaContainer') container!: ElementRef;
   @Output() discard = new EventEmitter<void>();
 
-  items: (GridsterItem & { type: 'text' | 'image' })[] = [];
+  items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   itemCounter = 0;
 
   private readonly STORAGE_KEY = 'editor_saved_data';
@@ -45,7 +45,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   addText(): void {
-    this.itemCounter++;
+    const newId = Date.now(); // Better unique ID than a simple counter
 
     const itemWidth = 1; 
     const gridCols = 3; 
@@ -76,23 +76,23 @@ export class EditorComponent implements AfterViewInit {
       cols: itemWidth,
       rows: 1,
       type: 'text',
-      id: this.itemCounter
+      id: newId  // Using the generated ID
     });
 
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
   }
 
-
   addImage(): void {
-    this.itemCounter++;
+    const newId = Date.now(); // Better unique ID than a simple counter
+    
     this.items.push({
       x: 0,
       y: 0,
       cols: 2,
       rows: 2,
       type: 'image',
-      id: this.itemCounter
+      id: newId  // Using the generated ID
     });
 
     this.editorWrapper.nativeElement.classList.remove('hidden');
