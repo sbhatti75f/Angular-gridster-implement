@@ -1,253 +1,234 @@
 <div class="action-bar" (mousedown)="$event.preventDefault()">
-    <div class="text-size-wrapper">
-        <div class="text-size" data-name="Text Size">
-            <!-- Default visible icon -->
-            <div class="svg-default">
-                <svg width="60" height="32">
-                    <use xlink:href="assets/icons.svg#text-size-default"></use>
-                </svg>
-            </div>
-            
-            <div class="size-dropdown">
-                <!-- Large size option -->
-                <div class="size-option" data-size="large" data-name="Large">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#text-size-large"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#text-size-replacement-large"></use>
-                        </svg>
-                    </template>
-                </div>
+  <div class="text-size-wrapper">
+    <div class="text-size" data-name="Text Size"
+         [ngClass]="{ 'active': isTextSizeDropdownOpen }"
+         (click)="isTextSizeDropdownOpen = !isTextSizeDropdownOpen; $event.stopPropagation();"
+         #textSizeControl>
+      <div class="svg-default">
+        <ng-container [ngSwitch]="selectedFontSize">
+          <svg *ngSwitchCase="'large'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#text-size-replacement-large"></use>
+          </svg>
+          <svg *ngSwitchCase="'medium'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#text-size-replacement-medium"></use>
+          </svg>
+          <svg *ngSwitchCase="'small'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#text-size-replacement-small"></use>
+          </svg>
+          <svg *ngSwitchDefault width="60" height="32">
+            <use xlink:href="assets/icons.svg#text-size-default"></use>
+          </svg>
+        </ng-container>
+      </div>
 
-                <!-- Medium size option -->
-                <div class="size-option" data-size="medium" data-name = "Medium">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#text-size-medium"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#text-size-replacement-medium"></use>
-                        </svg>
-                    </template>
-                </div>
-                
-                <!-- Small size option -->
-                <div class="size-option" data-size="small" data-name="Small">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#text-size-small"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32" viewBox="0 0 60 32" >
-                            <use xlink:href="assets/icons.svg#text-size-replacement-small"></use>
-                        </svg>
-                    </template>
-                </div>
-            </div>
+      <div class="size-dropdown">
+        <div class="size-option" data-size="large" data-name="Large" (click)="changeFontSize('large',$event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#text-size-large"></use>
+          </svg>
         </div>
-    </div>
 
-
-    <div class="bold" data-name="bold">
-        <div class="svg-default">
-            <svg width="36" height="32">
-                <use xlink:href="assets/icons.svg#bold-icon"></use>
-            </svg>
+        <div class="size-option" data-size="medium" data-name="Medium" (click)="changeFontSize('medium', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#text-size-medium"></use>
+          </svg>
         </div>
-    </div>
 
-    <svg id="dash1" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
-    
-    <div class="italic" data-name="italic">
-        <div class="svg-default">
-            <svg width="36" height="32">
-                <use xlink:href="assets/icons.svg#italic-icon"></use>
-            </svg>
+        <div class="size-option" data-size="small" data-name="Small" (click)="changeFontSize('small', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#text-size-small"></use>
+          </svg>
         </div>
+      </div>
     </div>
+  </div>
 
-    <svg id="dash2" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
+  <div class="bold" data-name="bold" [ngClass]="{ 'active': isBoldActive }" (click)="toggleBold()">
+    <div class="svg-default">
+      <svg width="36" height="32">
+        <use xlink:href="assets/icons.svg#bold-icon"></use>
+      </svg>
+    </div>
+  </div>
 
-    <div class="alignment-wrapper">
-        <div class="alignment" data-name="Horizontal Align" title="Align Text">
-            <div class="svg-default">
-                <svg width="60" height="32">
-                    <use xlink:href="assets/icons.svg#align-default"></use>
-                </svg>
-            </div>
+  <svg id="dash1" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
 
-            <div class="alignment-dropdown">
-                <!-- Left Align -->
-                <div class="align-option" data-align="left" data-name="Left">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#align-left"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#align-replacement-left"></use>
-                        </svg>
-                    </template>
-                </div>
+  <div class="italic" data-name="italic" [ngClass]="{ 'active': isItalicActive }" (click)="toggleItalic()">
+    <div class="svg-default">
+      <svg width="36" height="32">
+        <use xlink:href="assets/icons.svg#italic-icon"></use>
+      </svg>
+    </div>
+  </div>
 
-                <!-- Center Align -->
-                <div class="align-option" data-align="center" data-name="Center">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#align-center"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#align-replacement-center"></use>
-                        </svg>
-                    </template>
-                </div>
+  <svg id="dash2" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
 
-                <!-- Right Align -->
-                <div class="align-option" data-align="right" data-name="Right">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#align-right"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#align-replacement-right"></use>
-                        </svg>
-                    </template>
-                </div>
-            </div>
+  <div class="alignment-wrapper">
+    <div class="alignment" data-name="Horizontal Align" title="Align Text"
+         [ngClass]="{ 'active': isAlignmentDropdownOpen }"
+         (click)="isAlignmentDropdownOpen = !isAlignmentDropdownOpen; $event.stopPropagation();"
+         #alignmentControl>
+      <div class="svg-default">
+        <ng-container [ngSwitch]="selectedTextAlign">
+          <svg *ngSwitchCase="'left'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#align-replacement-left"></use>
+          </svg>
+          <svg *ngSwitchCase="'center'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#align-replacement-center"></use>
+          </svg>
+          <svg *ngSwitchCase="'right'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#align-replacement-right"></use>
+          </svg>
+          <svg *ngSwitchDefault width="60" height="32">
+            <use xlink:href="assets/icons.svg#align-default"></use>
+          </svg>
+        </ng-container>
+      </div>
+
+      <div class="alignment-dropdown">
+        <div class="align-option" data-align="left" data-name="Left" (click)="changeTextAlign('left', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#align-left"></use>
+          </svg>
         </div>
-    </div>
 
-    <svg id="dash3" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
-
-    <div class="vertical-alignment-wrapper">
-        <div class="vertical-alignment" data-name="Vertical Align">
-            <div class="svg-default">
-                <svg width="60" height="32">
-                    <use xlink:href="assets/icons.svg#valign-default"></use>
-                </svg>
-            </div>
-
-            <div class="vertical-align-dropdown">
-                <!-- Top Align Option -->
-                <div class="v-align-option" data-valign="top" data-name = "Top">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#valign-top"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#valign-replacement-top"></use>
-                        </svg>
-                    </template>
-                </div>
-
-                <!-- Middle Align Option -->
-                <div class="v-align-option" data-valign="middle" data-name="Middle">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#valign-middle"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#valign-replacement-middle"></use>
-                        </svg>
-                    </template>
-                </div>
-                
-                <!-- Bottom Align Option -->
-                <div class="v-align-option" data-valign="bottom" data-name="Bottom">
-                    <svg class="svg-default" width="32" height="32">
-                        <use xlink:href="assets/icons.svg#valign-bottom"></use>
-                    </svg>
-                    <template class="replacement-icon">
-                        <svg width="60" height="32">
-                            <use xlink:href="assets/icons.svg#valign-replacement-bottom"></use>
-                        </svg>
-                    </template>
-                </div>
-            </div>
+        <div class="align-option" data-align="center" data-name="Center" (click)="changeTextAlign('center', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#align-center"></use>
+          </svg>
         </div>
+
+        <div class="align-option" data-align="right" data-name="Right" (click)="changeTextAlign('right', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#align-right"></use>
+          </svg>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <svg id="dash4" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
+  <svg id="dash3" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
 
+  <div class="vertical-alignment-wrapper">
+    <div class="vertical-alignment" data-name="Vertical Align"
+         [ngClass]="{ 'active': isVerticalAlignmentDropdownOpen }"
+         (click)="isVerticalAlignmentDropdownOpen = !isVerticalAlignmentDropdownOpen; $event.stopPropagation();"
+         #vAlignControl>
+      <div class="svg-default">
+        <ng-container [ngSwitch]="selectedVerticalAlign">
+          <svg *ngSwitchCase="'top'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#valign-replacement-top"></use>
+          </svg>
+          <svg *ngSwitchCase="'middle'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#valign-replacement-middle"></use>
+          </svg>
+          <svg *ngSwitchCase="'bottom'" width="60" height="32">
+            <use xlink:href="assets/icons.svg#valign-replacement-bottom"></use>
+          </svg>
+          <svg *ngSwitchDefault width="60" height="32">
+            <use xlink:href="assets/icons.svg#valign-default"></use>
+          </svg>
+        </ng-container>
+      </div>
 
-    <!--*****************************************************-->
-    <!-- Text Color SVG + Input -->
-    <div class="text-color" data-name="Text Color">
+      <div class="vertical-align-dropdown">
+        <div class="v-align-option" data-valign="top" data-name="Top" (click)="changeVerticalAlign('top', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#valign-top"></use>
+          </svg>
+        </div>
+
+        <div class="v-align-option" data-valign="middle" data-name="Middle" (click)="changeVerticalAlign('middle', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#valign-middle"></use>
+          </svg>
+        </div>
+
+        <div class="v-align-option" data-valign="bottom" data-name="Bottom" (click)="changeVerticalAlign('bottom', $event)">
+          <svg class="svg-default" width="32" height="32">
+            <use xlink:href="assets/icons.svg#valign-bottom"></use>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg id="dash4" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
+
+  <div class="text-color" data-name="Text Color">
     <div class="svg-default" (click)="handleColorIconClick('text')">
-        <svg #textColorIcon width="36" height="32">
+      <svg #textColorIcon width="36" height="32">
         <use xlink:href="assets/icons.svg#text-color-icon"></use>
-        </svg>
+      </svg>
     </div>
-    </div>
-    <input
+  </div>
+  <input
     *ngIf="showTextColorInput"
     type="color"
     [(ngModel)]="selectedColor"
-    (change)="applyTextColor()"
-    class="text-color-input" />
+    (change)="changeTextColor(selectedColor, $event)"
+    class="text-color-input"
+  />
 
-    <!-- Background Fill SVG + Input -->
-    <div class="backcolor" data-name="Fill Color">
+  <div class="backcolor" data-name="Fill Color">
     <div class="svg-default" (click)="handleColorIconClick('background')">
-        <svg width="40" height="32">
+      <svg width="40" height="32">
         <use xlink:href="assets/icons.svg#backcolor-icon"></use>
-        </svg>
+      </svg>
     </div>
-    </div>
-    <input
+  </div>
+  <input
     *ngIf="showBackColorInput"
     type="color"
-    [(ngModel)]="selectedColor"
-    (change)="applyBackgroundColor()"
-    class="body-color-input" />
+    [(ngModel)]="selectedBackgroundColor"
+    (change)="changeBackgroundColor(selectedBackgroundColor, $event)"
+    class="body-color-input"
+  />
 
-    <!-- Border Fill SVG + Input -->
-    <div class="border-fill" data-name="Border Color">
+  <div class="border-fill" data-name="Border Color">
     <div class="svg-default" (click)="handleColorIconClick('border')">
-        <svg width="40" height="32">
+      <svg width="40" height="32">
         <use xlink:href="assets/icons.svg#border-fill-icon"></use>
-        </svg>
+      </svg>
     </div>
-    </div>
-    <input
+  </div>
+  <input
     *ngIf="showBorderColorInput"
     type="color"
-    [(ngModel)]="selectedColor"
-    (change)="applyBorderColor()"
-    class="border-color-input" />
+    [(ngModel)]="selectedBorderColor"
+    (change)="changeBorderColor(selectedBorderColor, $event)"
+    class="border-color-input"
+  />
 
+  <svg id="dash5" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
 
-    <!--*****************************************************-->
-
-    <svg id="dash5" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
-
-    <div class="linking" data-name="Insert Link">
-        <div class="svg-default" (click)="insertLink()">
-            <svg width="44" height="32">
-                <use xlink:href="assets/icons.svg#link-icon"></use>
-            </svg>
-        </div>
+  <div class="linking" data-name="Insert Link">
+    <div class="svg-default" (click)="insertLink()">
+      <svg width="44" height="32">
+        <use xlink:href="assets/icons.svg#link-icon"></use>
+      </svg>
     </div>
+  </div>
 
-    <svg id="dash6" width="1" height="12">
-        <use xlink:href="assets/icons.svg#dash-icon"></use>
-    </svg>
+  <svg id="dash6" width="1" height="12">
+    <use xlink:href="assets/icons.svg#dash-icon"></use>
+  </svg>
 
-    <div class="deleting" data-name="Delete">
-        <div class="svg-default">
-            <svg width="44" height="32">
-                <use xlink:href="assets/icons.svg#delete-icon"></use>
-            </svg>
-        </div>
+  <div class="deleting" data-name="Delete" (click)="onDeleteClick()">
+    <div class="svg-default">
+      <svg width="44" height="32">
+        <use xlink:href="assets/icons.svg#delete-icon"></use>
+      </svg>
     </div>
+  </div>
 </div>

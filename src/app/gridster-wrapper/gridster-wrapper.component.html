@@ -3,8 +3,9 @@
                   [item]="item"
                   [ngClass]="{ 'focused': focusedIndex === i }">
 
-    <app-text-area 
+    <app-text-area
       *ngIf="item.type === 'text'" 
+      [styleState]="styleStateMap[i]"
       (editableRef)="setEditableDiv(i, $event)" 
       (focusChanged)="onFocusChange(i, $event)">
     </app-text-area>
@@ -13,8 +14,10 @@
       *ngIf="focusedIndex === i"
       [editableDiv]="editableDivMap[i]"
       [styleState]="styleStateMap[i]"
-      (styleChanged)="onStyleChanged(i, $event)">
+      (styleChanged)="onStyleChanged(i, $event)"
+      (deleteClicked)="deleteItemRequested.emit(i)">
     </app-text-bar>
+
 
   </gridster-item>
 </gridster>

@@ -23,4 +23,8 @@ export class TextComponent {
   triggerDiscard(): void {
     this.discardChangesRequested.emit();
   }
+  deleteItem(index: number) {
+    this.items.splice(index, 1);
+  }
+
 }

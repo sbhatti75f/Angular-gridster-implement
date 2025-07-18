@@ -4,7 +4,9 @@ import {
   ElementRef,
   Renderer2,
   AfterViewInit,
-  OnDestroy
+  OnDestroy,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { GridsterConfig, GridsterItem } from 'angular-gridster2';
 
@@ -15,6 +17,8 @@ import { GridsterConfig, GridsterItem } from 'angular-gridster2';
 })
 export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   @Input() items: (GridsterItem & { type: 'text' | 'image' })[] = [];
+  @Output() deleteItemRequested = new EventEmitter<number>();
+
 
   options: GridsterConfig = {
     draggable: {
@@ -69,9 +73,6 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
       link: '',                          
       deleted: false                    
     };
-  }
-  else{
-    this.styleStateMap[index] = { ...this.styleStateMap[index] };
   }
 }
 
