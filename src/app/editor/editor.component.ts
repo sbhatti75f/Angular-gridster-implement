@@ -8,6 +8,7 @@ import {
   EventEmitter
 } from '@angular/core';
 import { GridsterItem } from 'angular-gridster2';
+import {contentType} from '../enums/enums' 
 
 @Component({
   selector: 'app-editor',
@@ -22,7 +23,7 @@ export class EditorComponent implements AfterViewInit {
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
 
   @Output() discard = new EventEmitter<void>();
-  viewMode: 'text' | 'image' | null = null;
+  viewMode: contentType | null = null;
   imageUrlMap: { [id: number]: string } = {};
 
   items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
@@ -49,7 +50,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   addText(): void {
-    this.viewMode = 'text';
+    this.viewMode = contentType.Text;
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
     const newId = Date.now();
@@ -88,7 +89,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   addImage(): void {
-    this.viewMode = 'image';
+    this.viewMode = contentType.Image;
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
 
