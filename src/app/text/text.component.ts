@@ -6,7 +6,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { GridsterItem } from 'angular-gridster2';
-import { GridsterWrapperComponent } from '../gridster-wrapper/gridster-wrapper.component'; // Adjust path as needed
+import { GridsterWrapperComponent } from '../gridster-wrapper/gridster-wrapper.component'; 
 
 @Component({
   selector: 'app-text',

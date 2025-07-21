@@ -11,9 +11,27 @@
   <li (click)="addText()"> Add Text</li>
 </ul>
 
+<input
+  type="file"
+  accept="image/*"
+  style="display: none"
+  #imageInput
+  (change)="onImageSelected($event)"
+/>
+
 <app-text 
+  *ngIf="viewMode === 'text'"
   [items]="items" 
   (saveChangesRequested)="saveChanges()"
   (discardChangesRequested)="discardChanges()">
 </app-text>
+
+<app-image
+  *ngIf="viewMode === 'image'"
+  [items]="items"
+  [imageUrlMap]="imageUrlMap"
+  (saveChangesRequested)="saveChanges()"
+  (discardChangesRequested)="discardChanges()">
+</app-image>
+
 

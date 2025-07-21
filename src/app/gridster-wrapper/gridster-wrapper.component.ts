@@ -18,6 +18,12 @@ import { GridsterConfig, GridsterItem } from 'angular-gridster2';
 export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   @Input() items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   @Output() deleteItemRequested = new EventEmitter<number>();
+  @Input() imageUrlMap: { [id: number]: string } = {};
+
+  setImageUrl(id: number, url: string) {
+    this.imageUrlMap[id] = url;
+  }
+
 
   options: GridsterConfig = {
     draggable: {
@@ -94,5 +100,12 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     if (this.focusedId === id) {
       this.focusedId = null;
     }
+    delete this.imageUrlMap[id];
   }
+
+  handleDelete(id: number) {
+    this.cleanUpState(id);
+    this.deleteItemRequested.emit(id);
+  }
+
 }

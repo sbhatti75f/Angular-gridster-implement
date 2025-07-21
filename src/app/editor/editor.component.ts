@@ -19,7 +19,11 @@ export class EditorComponent implements AfterViewInit {
   @ViewChild('editorWrapper') editorWrapper!: ElementRef;
   @ViewChild('editableDiv') editableDiv!: ElementRef;
   @ViewChild('textAreaContainer') container!: ElementRef;
+  @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
+
   @Output() discard = new EventEmitter<void>();
+  viewMode: 'text' | 'image' | null = null;
+  imageUrlMap: { [id: number]: string } = {};
 
   items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   itemCounter = 0;
@@ -45,7 +49,10 @@ export class EditorComponent implements AfterViewInit {
   }
 
   addText(): void {
-    const newId = Date.now(); // Better unique ID than a simple counter
+    this.viewMode = 'text';
+    this.editorWrapper.nativeElement.classList.remove('hidden');
+    this.contextMenu.nativeElement.classList.add('hidden');
+    const newId = Date.now();
 
     const itemWidth = 1; 
     const gridCols = 3; 
@@ -78,26 +85,65 @@ export class EditorComponent implements AfterViewInit {
       type: 'text',
       id: newId  // Using the generated ID
     });
-
-    this.editorWrapper.nativeElement.classList.remove('hidden');
-    this.contextMenu.nativeElement.classList.add('hidden');
   }
 
   addImage(): void {
-    const newId = Date.now(); // Better unique ID than a simple counter
-    
-    this.items.push({
-      x: 0,
-      y: 0,
-      cols: 2,
-      rows: 2,
-      type: 'image',
-      id: newId  // Using the generated ID
-    });
-
+    this.viewMode = 'image';
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
+
+    this.imageInput.nativeElement.click(); // Open file dialog
   }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const newId = Date.now();
+
+      const itemWidth = 1;
+      const gridCols = 3;
+
+      let positionFound = false;
+      let newX = 0;
+      let newY = 1;
+
+      while (!positionFound) {
+        const rowItems = this.items.filter(item => item.y === newY);
+        let usedCols = 0;
+        rowItems.forEach(item => {
+          usedCols = Math.max(usedCols, item.x + item.cols);
+        });
+
+        if (usedCols + itemWidth <= gridCols) {
+          newX = usedCols;
+          positionFound = true;
+        } else {
+          newY++;
+        }
+      }
+
+      this.items.push({
+        x: newX,
+        y: newY,
+        cols: itemWidth,
+        rows: 1,
+        type: 'image',
+        id: newId
+      });
+
+      this.imageUrlMap[newId] = reader.result as string;
+
+      // Clear the input so the same file can be selected again if needed
+      this.imageInput.nativeElement.value = '';
+    };
+
+    reader.readAsDataURL(file);
+  }
+
 
   saveChanges(): void {
     const editorData = {

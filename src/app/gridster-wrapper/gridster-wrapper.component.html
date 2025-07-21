@@ -11,12 +11,24 @@
     </app-text-area>
 
     <app-text-bar
-      *ngIf="focusedId === item.id"
+      *ngIf="item.type === 'text' && focusedId === item.id"
       [editableDiv]="editableDivMap[item.id]"
       [styleState]="styleStateMap[item.id]"
       (styleChanged)="onStyleChanged(item.id, $event)"
       (deleteClicked)="deleteItemRequested.emit(i)">
     </app-text-bar>
+
+    <app-image-area
+      *ngIf="item.type === 'image'"
+      [imageUrl]="imageUrlMap[item.id]"
+      (focusChanged)="onFocusChange(item.id, $event)">
+    </app-image-area>
+
+
+    <app-image-bar
+      *ngIf="item.type === 'image' && focusedId === item.id"
+      (deleteClicked)="handleDelete(item.id)">
+    </app-image-bar>
 
   </gridster-item>
 </gridster>

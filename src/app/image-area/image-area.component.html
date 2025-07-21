@@ -1,0 +1,10 @@
+<div class="image-area-container" #imageContainer tabindex="0" (focus)="onFocus()" (blur)="onBlur()" (click)="onFocus()">
+  <img
+  *ngIf="imageUrl"
+  #imageRef
+  class="displayed-image"
+  [src]="imageUrl"
+/>
+<span *ngIf="!imageUrl" class="placeholder">No image available</span>
+</div>
+

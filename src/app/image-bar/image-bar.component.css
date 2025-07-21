@@ -44,17 +44,24 @@
   white-space: nowrap;
 }
 
+.replacingImage[data-name]::before {
+  width: 50px;
+  height: 15px;
+  left: 10px;
+  transform: none;
+}
+
 .linking[data-name]::before {
   width: 60px;
   height: 15px;
-  left: 380px;
+  left: 50px;
   transform: none;
 }
 
 .deleting[data-name]::before {
   width: 35px;
   height: 15px;
-  left: 438px;
+  left: 105px;
   transform: none;
 }
 
@@ -73,13 +80,14 @@
     background: rgba(255, 255, 255, 1);
 }
 
-.replaceIcon{
+.replacingImage .svg-default{
     position: absolute;
+    width: 40px;
+    height: 32px;
     left: 24px;
     top: 4px;
     bottom: 4px;
-    width: 40px;
-    height: 32px;
+    cursor: pointer;
 }
 
 #dash7 {
@@ -93,24 +101,12 @@
 
 .linking .svg-default{
     position: absolute;
-    color: rgba(182, 182, 182, 1);
     top: 4px;
     bottom: 4px;
     height: 32px;
     width: 44px;
     cursor: pointer;
-    display: inline-block;
     left: 65px;
-    fill: currentColor;
-}
-
-.linking .svg-default:hover{
-  background-color: rgba(229, 86, 26, 0.1);
-  color: rgba(229, 86, 26, 1);
-}
-
-.linking .svg-default.active{
-  color: rgba(229, 86, 26, 1);
 }
 
 #dash8 {
@@ -122,13 +118,12 @@
     width: 1px;
 }
 
-.deleting  .svg-default{
+.deleting .svg-default{
     position: absolute;
     top: 4px;
     bottom: 4px;
     height: 32px;
     width: 44px;
     cursor: pointer;
-    display: inline-block;
     left: 110px;
 }

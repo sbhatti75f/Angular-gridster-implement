@@ -12,6 +12,8 @@ import { GridsterWrapperComponent } from './gridster-wrapper/gridster-wrapper.co
 import { ImageComponent } from './image/image.component';
 import { TextBarComponent } from './text-bar/text-bar.component';
 import { TextAreaComponent } from './text-area/text-area.component';
+import { ImageBarComponent } from './image-bar/image-bar.component';
+import { ImageAreaComponent } from './image-area/image-area.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,9 @@ import { TextAreaComponent } from './text-area/text-area.component';
     GridsterWrapperComponent,
     ImageComponent,
     TextBarComponent,
-    TextAreaComponent
+    TextAreaComponent,
+    ImageBarComponent,
+    ImageAreaComponent
   ],
   imports: [
     BrowserModule,
