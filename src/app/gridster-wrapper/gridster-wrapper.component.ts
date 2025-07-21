@@ -13,7 +13,7 @@ import { GridsterConfig, GridsterItem } from 'angular-gridster2';
 @Component({
   selector: 'app-gridster-wrapper',
   templateUrl: './gridster-wrapper.component.html',
-  styleUrls: ['./gridster-wrapper.component.css']
+  styleUrls: ['./gridster-wrapper.component.scss']
 })
 export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   @Input() items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];

@@ -10,7 +10,7 @@ import {
 @Component({
   selector: 'app-image-bar',
   templateUrl: './image-bar.component.html',
-  styleUrls: ['./image-bar.component.css']
+  styleUrls: ['./image-bar.component.scss']
 })
 export class ImageBarComponent {
   @Input() imageRef!: ElementRef; // comes from image-area

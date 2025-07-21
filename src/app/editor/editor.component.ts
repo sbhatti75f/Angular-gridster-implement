@@ -13,7 +13,7 @@ import {contentType} from '../enums/enums'
 @Component({
   selector: 'app-editor',
   templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.css']
+  styleUrls: ['./editor.component.scss']
 })
 export class EditorComponent implements AfterViewInit {
   @ViewChild('contextMenu') contextMenu!: ElementRef;

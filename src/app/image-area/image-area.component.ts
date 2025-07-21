@@ -11,7 +11,7 @@ import {
 @Component({
   selector: 'app-image-area',
   templateUrl: './image-area.component.html',
-  styleUrls: ['./image-area.component.css']
+  styleUrls: ['./image-area.component.scss']
 })
 export class ImageAreaComponent implements AfterViewInit {
   @Input() imageUrl: string = '';

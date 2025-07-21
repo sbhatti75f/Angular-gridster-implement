@@ -11,7 +11,7 @@ import { GridsterWrapperComponent } from '../gridster-wrapper/gridster-wrapper.c
 @Component({
   selector: 'app-text',
   templateUrl: './text.component.html',
-  styleUrls: ['./text.component.css']
+  styleUrls: ['./text.component.scss']
 })
 export class TextComponent {
   @Input() items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];

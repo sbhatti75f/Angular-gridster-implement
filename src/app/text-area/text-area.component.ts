@@ -14,7 +14,7 @@ import {
 @Component({
   selector: 'app-text-area',
   templateUrl: './text-area.component.html',
-  styleUrls: ['./text-area.component.css']
+  styleUrls: ['./text-area.component.scss']
 })
 export class TextAreaComponent implements AfterViewInit, OnChanges {
   @ViewChild('editableDiv') editableDiv!: ElementRef;

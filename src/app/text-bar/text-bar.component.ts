@@ -15,7 +15,7 @@ import {
 @Component({
   selector: 'app-text-bar',
   templateUrl: './text-bar.component.html',
-  styleUrls: ['./text-bar.component.css']
+  styleUrls: ['./text-bar.component.scss']
 })
 export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('textColorIcon') textColorIcon!: ElementRef<SVGSVGElement>;
