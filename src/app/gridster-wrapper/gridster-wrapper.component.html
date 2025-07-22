@@ -1,7 +1,7 @@
 <gridster [options]="options" class="gridster-wrapper">
   <gridster-item *ngFor="let item of items; let i = index" 
-                [item]="item"
-                [ngClass]="{ 'focused': focusedId === item.id }">
+                 [item]="item"
+                 [ngClass]="{ 'focused': focusedId === item.id }">
 
     <app-text-area
       *ngIf="item.type === 'text'" 
@@ -15,19 +15,25 @@
       [editableDiv]="editableDivMap[item.id]"
       [styleState]="styleStateMap[item.id]"
       (styleChanged)="onStyleChanged(item.id, $event)"
-      (deleteClicked)="deleteItemRequested.emit(i)">
+      (deleteClicked)="deleteItemRequested.emit(item.id)"> 
     </app-text-bar>
 
     <app-image-area
       *ngIf="item.type === 'image'"
+      [imageId]="item.id" 
       [imageUrl]="imageUrlMap[item.id]"
-      (focusChanged)="onFocusChange(item.id, $event)">
+      [imageLink]="imageLinkMap[item.id]"
+      (focusChanged)="onFocusChange(item.id, $event)"
+      (imageElementRefOutput)="setImageElementRef($event.id, $event.elementRef)">
     </app-image-area>
-
 
     <app-image-bar
       *ngIf="item.type === 'image' && focusedId === item.id"
-      (deleteClicked)="handleDelete(item.id)">
+      (deleteClicked)="handleDelete(item.id)"
+      (imageReplaced)="setImageUrl(item.id, $event)" 
+      (requestElementRefRefresh)="refreshImageElementRef(item.id)"
+      [imageRef]="imageElementRefMap[item.id]"
+      (linkAdded)="setImageLink(item.id, $event)">
     </app-image-bar>
 
   </gridster-item>

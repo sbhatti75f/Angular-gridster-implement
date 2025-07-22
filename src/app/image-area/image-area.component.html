@@ -1,10 +1,30 @@
-<div class="image-area-container" #imageContainer tabindex="0" (focus)="onFocus()" (blur)="onBlur()" (click)="onFocus()">
-  <img
-  *ngIf="imageUrl"
-  #imageRef
-  class="displayed-image"
-  [src]="imageUrl"
-/>
-<span *ngIf="!imageUrl" class="placeholder">No image available</span>
-</div>
+<div
+  class="image-area-container"
+  #imageContainer
+  tabindex="0"
+  (focus)="onFocus()"
+  (blur)="onBlur()"
+  (click)="onFocus()"
+>
+  <ng-container *ngIf="imageLink; else noLinkTemplate">
+    <a [href]="imageLink" target="_blank">
+      <img
+        #imageRef
+        class="displayed-image"
+        [src]="imageUrl || fallbackImg"
+        alt="Gridster Image"
+      />
+    </a>
+  </ng-container>
 
+  <ng-template #noLinkTemplate>
+    <img
+      #imageRef
+      class="displayed-image"
+      [src]="imageUrl || fallbackImg"
+      alt="Gridster Image"
+    />
+  </ng-template>
+
+  <span *ngIf="!imageUrl" class="placeholder">No image available</span>
+</div>

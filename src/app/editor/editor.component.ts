@@ -48,43 +48,30 @@ export class EditorComponent implements AfterViewInit {
       this.contextMenu.nativeElement.classList.add('hidden');
     });
   }
-
+  
   addText(): void {
     this.viewMode = contentType.Text;
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
-    const newId = Date.now();
+    const newId = Date.now() + Math.floor(Math.random() * 1000);
 
-    const itemWidth = 1; 
-    const gridCols = 3; 
-
-    let positionFound = false;
-    let newX = 0;
-    let newY = 1;
-
-    while (!positionFound) {
-      const rowItems = this.items.filter(item => item.y === newY);
-
-      let usedCols = 0;
-      rowItems.forEach(item => {
-        usedCols = Math.max(usedCols, item.x + item.cols);
-      });
-
-      if (usedCols + itemWidth <= gridCols) {
-        newX = usedCols;
-        positionFound = true;
-      } else {
-        newY++;
+    let maxX = 0;
+    for (const item of this.items) {
+      if (item.y === 1) {  // check row 1 now
+        const rightEdge = item.x + item.cols;
+        if (rightEdge > maxX) {
+          maxX = rightEdge;
+        }
       }
     }
 
     this.items.push({
-      x: newX,
-      y: newY,
-      cols: itemWidth,
+      x: maxX,
+      y: 1,
+      cols: 1,
       rows: 1,
       type: 'text',
-      id: newId  // Using the generated ID
+      id: newId
     });
   }
 
@@ -93,52 +80,48 @@ export class EditorComponent implements AfterViewInit {
     this.editorWrapper.nativeElement.classList.remove('hidden');
     this.contextMenu.nativeElement.classList.add('hidden');
 
-    this.imageInput.nativeElement.click(); // Open file dialog
+    this.imageInput.nativeElement.click(); 
   }
-
+  
   onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
+    // Check file size (limit: 5MB)
+    const maxSizeMB = 5;
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      alert(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller image.`);
+      this.imageInput.nativeElement.value = ''; // Clear input
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
-      const newId = Date.now();
+      const newId = Date.now() + Math.floor(Math.random() * 1000);
 
-      const itemWidth = 1;
-      const gridCols = 3;
-
-      let positionFound = false;
-      let newX = 0;
-      let newY = 1;
-
-      while (!positionFound) {
-        const rowItems = this.items.filter(item => item.y === newY);
-        let usedCols = 0;
-        rowItems.forEach(item => {
-          usedCols = Math.max(usedCols, item.x + item.cols);
-        });
-
-        if (usedCols + itemWidth <= gridCols) {
-          newX = usedCols;
-          positionFound = true;
-        } else {
-          newY++;
+      let maxX = 0;
+      for (const item of this.items) {
+        if (item.y === 1) {  
+          const rightEdge = item.x + item.cols;
+          if (rightEdge > maxX) {
+            maxX = rightEdge;
+          }
         }
       }
 
       this.items.push({
-        x: newX,
-        y: newY,
-        cols: itemWidth,
+        x: maxX,
+        y: 1,
+        cols: 1,
         rows: 1,
         type: 'image',
         id: newId
       });
-
       this.imageUrlMap[newId] = reader.result as string;
 
-      // Clear the input so the same file can be selected again if needed
+      // Clear input so user can re-select the same image if needed
       this.imageInput.nativeElement.value = '';
     };
 
@@ -159,12 +142,15 @@ export class EditorComponent implements AfterViewInit {
       dimensions: {
         width: this.container?.nativeElement.style.width || '',
         height: this.container?.nativeElement.style.height || ''
-      }
+      },
+      gridItems: this.items, // Save positions and types of items
+      imageUrls: this.imageUrlMap // Save image base64 content mapped by ID
     };
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(editorData));
-    alert('Editor content saved to local storage!');
+    alert('Editor content and images saved to local storage!');
   }
+
 
   discardChanges(): void {
     if (confirm('Are you sure you want to discard all changes?')) {
@@ -177,5 +163,25 @@ export class EditorComponent implements AfterViewInit {
       alert('Changes discarded and editor cleared.');
     }
   }
-}
 
+  deleteItem(id: number): void {
+    // Find the index of the item to delete
+    const index = this.items.findIndex(item => item.id === id);
+    
+    if (index !== -1) {
+      // If it's an image item, remove from imageUrlMap
+      if (this.items[index].type === 'image') {
+        const { [id]: _, ...updatedImageUrls } = this.imageUrlMap;
+        this.imageUrlMap = updatedImageUrls;
+      }
+      
+      // Remove item using immutable operation
+      this.items = this.items.filter(item => item.id !== id);
+    }
+  }
+
+  onImageUpdated(updatedMap: { [id: number]: string }): void {
+    this.imageUrlMap = { ...updatedMap };
+  }
+
+}

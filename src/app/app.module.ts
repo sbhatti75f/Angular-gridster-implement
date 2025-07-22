@@ -6,10 +6,8 @@ import { CommonModule } from '@angular/common';
 import { AppComponent } from './app.component';
 import { EditorComponent } from './editor/editor.component';
 import { FormsModule } from '@angular/forms';
-import { TextComponent } from './text/text.component';
 import { GridsterModule } from 'angular-gridster2';
 import { GridsterWrapperComponent } from './gridster-wrapper/gridster-wrapper.component';
-import { ImageComponent } from './image/image.component';
 import { TextBarComponent } from './text-bar/text-bar.component';
 import { TextAreaComponent } from './text-area/text-area.component';
 import { ImageBarComponent } from './image-bar/image-bar.component';
@@ -19,9 +17,7 @@ import { ImageAreaComponent } from './image-area/image-area.component';
   declarations: [
     AppComponent,
     EditorComponent,
-    TextComponent,
     GridsterWrapperComponent,
-    ImageComponent,
     TextBarComponent,
     TextAreaComponent,
     ImageBarComponent,
