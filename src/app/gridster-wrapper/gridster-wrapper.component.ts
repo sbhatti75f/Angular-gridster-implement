@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { GridsterConfig, GridsterItem } from 'angular-gridster2';
 
+
 @Component({
   selector: 'app-gridster-wrapper',
   templateUrl: './gridster-wrapper.component.html',
@@ -23,7 +24,6 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   @Output() discardChangesRequested = new EventEmitter<void>();
 
   imageLinkMap: { [id: number]: string } = {};
-
 
   triggerSave(): void {
     this.saveChangesRequested.emit();

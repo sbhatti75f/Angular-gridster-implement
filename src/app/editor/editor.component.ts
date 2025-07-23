@@ -153,16 +153,58 @@ export class EditorComponent implements AfterViewInit {
 
 
   discardChanges(): void {
-    if (confirm('Are you sure you want to discard all changes?')) {
-      localStorage.removeItem(this.STORAGE_KEY);
-      if (this.editableDiv) {
-        this.editableDiv.nativeElement.innerHTML = '';
-      }
-      this.editorWrapper.nativeElement.classList.add('hidden');
-      this.discard.emit();
-      alert('Changes discarded and editor cleared.');
+    const savedData = localStorage.getItem(this.STORAGE_KEY);
+
+    if (!savedData) {
+      alert('No saved data found.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to discard unsaved changes and revert to the last saved version?')) return;
+
+    try {
+      const parsedData = JSON.parse(savedData);
+
+      // Step 1: Restore grid items and image data
+      this.items = parsedData.gridItems || [];
+      this.imageUrlMap = parsedData.imageUrls || {};
+
+      // Step 2: Allow DOM to update (gridster + editable divs reappear)
+      setTimeout(() => {
+        // Step 3: Restore editable text content and styles
+        if (this.editableDiv) {
+          this.editableDiv.nativeElement.innerHTML = parsedData.content || '';
+
+          const el = this.editableDiv.nativeElement;
+          const styles = parsedData.styles || {};
+
+          el.style.fontSize = styles.fontSize || '';
+          el.style.fontWeight = styles.fontWeight || '';
+          el.style.fontStyle = styles.fontStyle || '';
+          el.style.textAlign = styles.textAlign || '';
+          el.style.verticalAlign = styles.verticalAlign || '';
+        }
+
+        // Step 4: Restore container dimensions
+        if (this.container) {
+          const dim = parsedData.dimensions || {};
+          const containerEl = this.container.nativeElement;
+          containerEl.style.width = dim.width || '';
+          containerEl.style.height = dim.height || '';
+        }
+
+        // Hide the editor panel
+        this.editorWrapper.nativeElement.classList.add('hidden');
+
+        alert('Editor has been restored to the last saved state.');
+      });
+
+    } catch (err) {
+      console.error('Failed to parse saved editor data:', err);
+      alert('Failed to restore the saved state.');
     }
   }
+
 
   deleteItem(id: number): void {
     // Find the index of the item to delete
