@@ -22,26 +22,10 @@ export class ImageBarComponent {
 
   @Output() linkAdded = new EventEmitter<string>();
 
-  // Trigger file selection for replacing
-  triggerFileReplace() {
-    this.fileInputRef.nativeElement.click();
-  }
+  @Output() replaceImageRequested = new EventEmitter<void>();
 
-  // Replace logic
-  onFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        this.imageReplaced.emit(dataUrl); // Emits the new image URL
-      };
-      reader.readAsDataURL(file);
-    }
-    // Clear the file input value to allow selecting the same file again
-    if (this.fileInputRef && this.fileInputRef.nativeElement) {
-      this.fileInputRef.nativeElement.value = '';
-    }
+  triggerFileReplace() {
+    this.replaceImageRequested.emit();
   }
 
   addLinkToImage() {

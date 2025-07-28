@@ -29,6 +29,14 @@ export class EditorComponent implements AfterViewInit {
   items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
   itemCounter = 0;
 
+  private replacingImageId: number | null = null;
+
+  replaceImage(id: number): void {
+    console.log('Editor: Replace image requested for ID:', id);
+    this.replacingImageId = id;
+    this.imageInput.nativeElement.click();
+  }
+
   private readonly STORAGE_KEY = 'editor_saved_data';
 
   constructor(private renderer: Renderer2) {}
@@ -93,35 +101,44 @@ export class EditorComponent implements AfterViewInit {
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       alert(`File size exceeds ${maxSizeMB}MB limit. Please choose a smaller image.`);
-      this.imageInput.nativeElement.value = ''; // Clear input
+      this.imageInput.nativeElement.value = '';
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      const newId = Date.now() + Math.floor(Math.random() * 1000);
+      const dataUrl = reader.result as string;
+      
+      if (this.replacingImageId !== null) {
+        // Replace existing image
+        this.imageUrlMap[this.replacingImageId] = dataUrl;
+        this.replacingImageId = null; // Reset
+      } else {
+        // Add new image (existing logic)
+        const newId = Date.now() + Math.floor(Math.random() * 1000);
 
-      let maxX = 0;
-      for (const item of this.items) {
-        if (item.y === 1) {  
-          const rightEdge = item.x + item.cols;
-          if (rightEdge > maxX) {
-            maxX = rightEdge;
+        let maxX = 0;
+        for (const item of this.items) {
+          if (item.y === 1) {  
+            const rightEdge = item.x + item.cols;
+            if (rightEdge > maxX) {
+              maxX = rightEdge;
+            }
           }
         }
+
+        this.items.push({
+          x: maxX,
+          y: 1,
+          cols: 1,
+          rows: 1,
+          type: 'image',
+          id: newId
+        });
+        this.imageUrlMap[newId] = dataUrl;
       }
 
-      this.items.push({
-        x: maxX,
-        y: 1,
-        cols: 1,
-        rows: 1,
-        type: 'image',
-        id: newId
-      });
-      this.imageUrlMap[newId] = reader.result as string;
-
-      // Clear input so user can re-select the same image if needed
+      // Clear input
       this.imageInput.nativeElement.value = '';
     };
 

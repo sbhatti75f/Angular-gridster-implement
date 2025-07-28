@@ -23,6 +23,7 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   @Input() imageUrlMap: { [id: number]: string } = {};
   @Output() saveChangesRequested = new EventEmitter<void>();
   @Output() discardChangesRequested = new EventEmitter<void>();
+  @Output() replaceImageRequested = new EventEmitter<number>();
 
   imageLinkMap: { [id: number]: string } = {};
 
@@ -33,7 +34,11 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   triggerDiscard(): void {
     this.discardChangesRequested.emit();
   }
-  
+
+  requestImageReplace(id: number) {
+    this.replaceImageRequested.emit(id);
+  }
+    
   // New map to store ElementRefs of images for linking
   imageElementRefMap: { [id: number]: ElementRef } = {};
   @Output() imageUrlMapChanged = new EventEmitter<{ [id: number]: string }>();

@@ -30,6 +30,7 @@
       *ngIf="item.type === 'image' && focusedId === item.id"
       (deleteClicked)="handleDelete(item.id)"
       (imageReplaced)="setImageUrl(item.id, $event)" 
+      (replaceImageRequested)="requestImageReplace(item.id)"
       (requestElementRefRefresh)="refreshImageElementRef(item.id)"
       [imageRef]="imageElementRefMap[item.id]"
       (linkAdded)="setImageLink(item.id, $event)">
