@@ -1,3 +1,4 @@
+// src/app/gridster-wrapper/gridster-wrapper.component.ts
 import {
   Component,
   Input,
@@ -68,6 +69,9 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
   editableDivMap: { [id: number]: ElementRef } = {};
   styleStateMap: { [id: number]: any } = {};
 
+  // New property for dynamic z-index
+  maxZIndex = 1000; 
+
   private globalClickUnlisten!: () => void;
 
   constructor(private renderer: Renderer2, private hostRef: ElementRef) {}
@@ -89,6 +93,11 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     if (this.globalClickUnlisten) {
       this.globalClickUnlisten();
     }
+  }
+
+  // Method to get dynamic z-index for each gridster item
+  getItemZIndex(itemId: number): number {
+    return this.focusedId === itemId ? this.maxZIndex : 1; 
   }
 
   onFocusChange(id: number, isFocused: boolean) {

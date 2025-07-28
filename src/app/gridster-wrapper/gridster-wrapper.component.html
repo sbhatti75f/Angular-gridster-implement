@@ -1,9 +1,8 @@
 <gridster [options]="options" class="gridster-wrapper">
   <gridster-item *ngFor="let item of items; let i = index" 
                  [item]="item"
-                 [ngClass]="{ 'focused': focusedId === item.id }">
-
-    <app-text-area
+                 [ngClass]="{ 'focused': focusedId === item.id }"
+                 [style.z-index]="getItemZIndex(item.id)"> <app-text-area
       *ngIf="item.type === 'text'" 
       [styleState]="styleStateMap[item.id]"
       (editableRef)="setEditableDiv(item.id, $event)" 

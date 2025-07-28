@@ -4,8 +4,7 @@
          [ngClass]="{ 'active': isTextSizeDropdownOpen }"
          (click)="isTextSizeDropdownOpen = !isTextSizeDropdownOpen; $event.stopPropagation();"
          #textSizeControl>
-      <div class="svg-default">
-        <ng-container [ngSwitch]="selectedFontSize">
+      <div class="svg-default" [ngClass]="{ 'active': isTextSizeDropdownOpen }"> <ng-container [ngSwitch]="selectedFontSize">
           <svg *ngSwitchCase="'large'" width="60" height="32">
             <use xlink:href="assets/icons.svg#text-size-replacement-large"></use>
           </svg>
@@ -43,9 +42,8 @@
     </div>
   </div>
 
-  <div class="bold" data-name="bold" [ngClass]="{ 'active': isBoldActive }" (click)="toggleBold()">
-    <div class="svg-default">
-      <svg width="36" height="32">
+  <div class="bold" data-name="bold" (click)="toggleBold()">
+    <div class="svg-default" [ngClass]="{ 'active': isBoldActive }"> <svg width="36" height="32">
         <use xlink:href="assets/icons.svg#bold-icon"></use>
       </svg>
     </div>
@@ -55,9 +53,8 @@
     <use xlink:href="assets/icons.svg#dash-icon"></use>
   </svg>
 
-  <div class="italic" data-name="italic" [ngClass]="{ 'active': isItalicActive }" (click)="toggleItalic()">
-    <div class="svg-default">
-      <svg width="36" height="32">
+  <div class="italic" data-name="italic" (click)="toggleItalic()">
+    <div class="svg-default" [ngClass]="{ 'active': isItalicActive }"> <svg width="36" height="32">
         <use xlink:href="assets/icons.svg#italic-icon"></use>
       </svg>
     </div>
@@ -72,8 +69,7 @@
          [ngClass]="{ 'active': isAlignmentDropdownOpen }"
          (click)="isAlignmentDropdownOpen = !isAlignmentDropdownOpen; $event.stopPropagation();"
          #alignmentControl>
-      <div class="svg-default">
-        <ng-container [ngSwitch]="selectedTextAlign">
+      <div class="svg-default" [ngClass]="{ 'active': isAlignmentDropdownOpen }"> <ng-container [ngSwitch]="selectedTextAlign">
           <svg *ngSwitchCase="'left'" width="60" height="32">
             <use xlink:href="assets/icons.svg#align-replacement-left"></use>
           </svg>
@@ -120,8 +116,7 @@
          [ngClass]="{ 'active': isVerticalAlignmentDropdownOpen }"
          (click)="isVerticalAlignmentDropdownOpen = !isVerticalAlignmentDropdownOpen; $event.stopPropagation();"
          #vAlignControl>
-      <div class="svg-default">
-        <ng-container [ngSwitch]="selectedVerticalAlign">
+      <div class="svg-default" [ngClass]="{ 'active': isVerticalAlignmentDropdownOpen }"> <ng-container [ngSwitch]="selectedVerticalAlign">
           <svg *ngSwitchCase="'top'" width="60" height="32">
             <use xlink:href="assets/icons.svg#valign-replacement-top"></use>
           </svg>
@@ -164,8 +159,7 @@
   </svg>
 
   <div class="text-color" data-name="Text Color">
-    <div class="svg-default" (click)="handleColorIconClick('text')">
-      <svg #textColorIcon width="36" height="32">
+    <div class="svg-default" (click)="handleColorIconClick('text')" [ngClass]="{ 'active': showTextColorInput }"> <svg #textColorIcon width="36" height="32">
         <use xlink:href="assets/icons.svg#text-color-icon"></use>
       </svg>
     </div>
@@ -179,8 +173,7 @@
   />
 
   <div class="backcolor" data-name="Fill Color">
-    <div class="svg-default" (click)="handleColorIconClick('background')">
-      <svg width="40" height="32">
+    <div class="svg-default" (click)="handleColorIconClick('background')" [ngClass]="{ 'active': showBackColorInput }"> <svg width="40" height="32">
         <use xlink:href="assets/icons.svg#backcolor-icon"></use>
       </svg>
     </div>
@@ -194,8 +187,7 @@
   />
 
   <div class="border-fill" data-name="Border Color">
-    <div class="svg-default" (click)="handleColorIconClick('border')">
-      <svg width="40" height="32">
+    <div class="svg-default" (click)="handleColorIconClick('border')" [ngClass]="{ 'active': showBorderColorInput }"> <svg width="40" height="32">
         <use xlink:href="assets/icons.svg#border-fill-icon"></use>
       </svg>
     </div>

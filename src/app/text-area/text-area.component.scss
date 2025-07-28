@@ -1,4 +1,3 @@
-
 .text-area-container {
   position: relative;
   width: 100%;
@@ -18,7 +17,7 @@
   background: transparent;
   font-family: 'Roboto', sans-serif;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 16px; /* Change this from 13px to 16px */
   line-height: 1.5;
   color: #333;
   white-space: pre-wrap;
@@ -34,4 +33,3 @@
   pointer-events: none;
   opacity: 1;
 }
-

@@ -1,3 +1,4 @@
+// src/app/text-bar/text-bar.component.ts
 import {
   Component,
   ViewChild,
@@ -81,7 +82,7 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Handle changes to editableDiv itself, e.g., if it's assigned later
     if (changes['editableDiv'] && this.editableDiv?.nativeElement && this.styleState) {
       // Re-apply styles and setup listeners if editableDiv changes
-      this.setupSvgClickToggles();
+      // this.setupSvgClickToggles(); // REMOVED: No longer needed/conflicting
       this.applyStyleStateToEditableDiv(this.styleState);
       this.updateSvgColors();
       this.setupEditableDivListeners();
@@ -155,14 +156,15 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     editable.style.justifyContent = this.getFlexValue(state.verticalAlign || 'top');
   }
 
-  private setupSvgClickToggles(): void {
-    const icons = document.querySelectorAll('.svg-default');
-    icons.forEach(icon => {
-      this.renderer.listen(icon, 'click', (e: Event) => {
-        icon.classList.toggle('active');
-      });
-    });
-  }
+  // REMOVED: This method is conflicting with [ngClass] and Angular's change detection
+  // private setupSvgClickToggles(): void {
+  //   const icons = document.querySelectorAll('.svg-default');
+  //   icons.forEach(icon => {
+  //     this.renderer.listen(icon, 'click', (e: Event) => {
+  //       icon.classList.toggle('active');
+  //     });
+  //   });
+  // }
 
 
   /**
