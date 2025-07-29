@@ -18,15 +18,13 @@ import {contentType} from '../enums/enums'
 export class EditorComponent implements AfterViewInit {
   @ViewChild('contextMenu') contextMenu!: ElementRef;
   @ViewChild('editorWrapper') editorWrapper!: ElementRef;
-  @ViewChild('editableDiv') editableDiv!: ElementRef;
-  @ViewChild('textAreaContainer') container!: ElementRef;
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
 
   @Output() discard = new EventEmitter<void>();
   viewMode: contentType | null = null;
   imageUrlMap: { [id: number]: string } = {};
 
-  items: (GridsterItem & { type: 'text' | 'image'; id: number })[] = [];
+  items: (GridsterItem & { type: 'text' | 'image'; id: number; content?: string })[] = [];
   itemCounter = 0;
 
   private replacingImageId: number | null = null;
@@ -79,7 +77,8 @@ export class EditorComponent implements AfterViewInit {
       cols: 1,
       rows: 1,
       type: 'text',
-      id: newId
+      id: newId,
+      content: '' // Initialize with empty content
     });
   }
 
@@ -145,29 +144,78 @@ export class EditorComponent implements AfterViewInit {
     reader.readAsDataURL(file);
   }
 
-
   saveChanges(): void {
+    // Collect current text content and styles from all text items
+    const textContents: { [id: number]: string } = {};
+    const textStyles: { [id: number]: any } = {};
+    
+    this.items.forEach(item => {
+      if (item.type === 'text') {
+        // Find the corresponding text area element and get its content
+        const textElements = document.querySelectorAll(`[data-text-id="${item.id}"] .editable-div`);
+        if (textElements.length > 0) {
+          const editableDiv = textElements[0] as HTMLElement;
+          textContents[item.id] = editableDiv.innerHTML || '';
+          // Also update the item's content property
+          item.content = editableDiv.innerHTML || '';
+          
+          // Capture all computed and applied styles
+          const computedStyle = window.getComputedStyle(editableDiv);
+          textStyles[item.id] = {
+            fontWeight: editableDiv.style.fontWeight || computedStyle.fontWeight || 'normal',
+            fontStyle: editableDiv.style.fontStyle || computedStyle.fontStyle || 'normal',
+            fontSize: editableDiv.style.fontSize || computedStyle.fontSize || '16px',
+            textAlign: editableDiv.style.textAlign || computedStyle.textAlign || 'left',
+            color: editableDiv.style.color || computedStyle.color || '#000000',
+            backgroundColor: editableDiv.style.backgroundColor || computedStyle.backgroundColor || 'transparent',
+            borderColor: editableDiv.style.borderColor || computedStyle.borderColor || '#cccccc',
+            borderStyle: editableDiv.style.borderStyle || computedStyle.borderStyle || 'none',
+            borderWidth: editableDiv.style.borderWidth || computedStyle.borderWidth || '0px',
+            display: editableDiv.style.display || computedStyle.display || 'block',
+            flexDirection: editableDiv.style.flexDirection || computedStyle.flexDirection || 'column',
+            justifyContent: editableDiv.style.justifyContent || computedStyle.justifyContent || 'flex-start'
+          };
+        }
+      }
+    });
+
+    // Get image links from GridsterWrapper component
+    const imageLinks = this.getImageLinksFromGridster();
+
     const editorData = {
-      content: this.editableDiv?.nativeElement.innerHTML || '',
-      styles: {
-        fontSize: this.editableDiv?.nativeElement.style.fontSize || '',
-        fontWeight: this.editableDiv?.nativeElement.style.fontWeight || '',
-        fontStyle: this.editableDiv?.nativeElement.style.fontStyle || '',
-        textAlign: this.editableDiv?.nativeElement.style.textAlign || '',
-        verticalAlign: this.editableDiv?.nativeElement.style.verticalAlign || ''
-      },
-      dimensions: {
-        width: this.container?.nativeElement.style.width || '',
-        height: this.container?.nativeElement.style.height || ''
-      },
-      gridItems: this.items, // Save positions and types of items
-      imageUrls: this.imageUrlMap // Save image base64 content mapped by ID
+      gridItems: this.items, // This now includes content for text items
+      imageUrls: this.imageUrlMap,
+      textContents: textContents, // Separate mapping for text contents
+      textStyles: textStyles, // Save all styling information
+      imageLinks: imageLinks // Save image links
     };
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(editorData));
     alert('Editor content and images saved to local storage!');
   }
 
+  // Helper method to get image links from GridsterWrapper
+  private getImageLinksFromGridster(): { [id: number]: string } {
+    // Dispatch custom event to request image links from GridsterWrapper
+    const getLinksEvent = new CustomEvent('getImageLinks', { 
+      detail: { callback: null }
+    });
+    
+    let imageLinks: { [id: number]: string } = {};
+    
+    // Create a synchronous way to get the data
+    const linkRequestEvent = new CustomEvent('requestImageLinks');
+    document.dispatchEvent(linkRequestEvent);
+    
+    // Try to get the links from a global temporary storage
+    const tempLinks = (window as any).tempImageLinks;
+    if (tempLinks) {
+      imageLinks = tempLinks;
+      delete (window as any).tempImageLinks;
+    }
+    
+    return imageLinks;
+  }
 
   discardChanges(): void {
     const savedData = localStorage.getItem(this.STORAGE_KEY);
@@ -186,35 +234,62 @@ export class EditorComponent implements AfterViewInit {
       this.items = parsedData.gridItems || [];
       this.imageUrlMap = parsedData.imageUrls || {};
 
-      // Step 2: Allow DOM to update (gridster + editable divs reappear)
+      // Step 2: Restore image links to GridsterWrapper
+      const imageLinks = parsedData.imageLinks || {};
+      this.restoreImageLinksToGridster(imageLinks);
+
+      // Step 3: Allow DOM to update (gridster + editable divs reappear)
       setTimeout(() => {
-        // Step 3: Restore editable text content and styles
-        if (this.editableDiv) {
-          this.editableDiv.nativeElement.innerHTML = parsedData.content || '';
+        // Step 4: Restore text content and styles for each text item
+        const textContents = parsedData.textContents || {};
+        const textStyles = parsedData.textStyles || {};
+        
+        this.items.forEach(item => {
+          if (item.type === 'text') {
+            // Use both the separate textContents mapping and item.content as fallback
+            const savedContent = textContents[item.id] || item.content || '';
+            const savedStyles = textStyles[item.id] || {};
+            
+            // Find and restore content to the corresponding text area
+            const textElements = document.querySelectorAll(`[data-text-id="${item.id}"] .editable-div`);
+            if (textElements.length > 0) {
+              const editableDiv = textElements[0] as HTMLElement;
+              editableDiv.innerHTML = savedContent;
+              
+              // Restore all saved styles
+              if (savedStyles.fontWeight) editableDiv.style.fontWeight = savedStyles.fontWeight;
+              if (savedStyles.fontStyle) editableDiv.style.fontStyle = savedStyles.fontStyle;
+              if (savedStyles.fontSize) editableDiv.style.fontSize = savedStyles.fontSize;
+              if (savedStyles.textAlign) editableDiv.style.textAlign = savedStyles.textAlign;
+              if (savedStyles.color) editableDiv.style.color = savedStyles.color;
+              if (savedStyles.backgroundColor) editableDiv.style.backgroundColor = savedStyles.backgroundColor;
+              if (savedStyles.borderColor) editableDiv.style.borderColor = savedStyles.borderColor;
+              if (savedStyles.borderStyle) editableDiv.style.borderStyle = savedStyles.borderStyle;
+              if (savedStyles.borderWidth) editableDiv.style.borderWidth = savedStyles.borderWidth;
+              if (savedStyles.display) editableDiv.style.display = savedStyles.display;
+              if (savedStyles.flexDirection) editableDiv.style.flexDirection = savedStyles.flexDirection;
+              if (savedStyles.justifyContent) editableDiv.style.justifyContent = savedStyles.justifyContent;
+            }
+          }
+        });
 
-          const el = this.editableDiv.nativeElement;
-          const styles = parsedData.styles || {};
-
-          el.style.fontSize = styles.fontSize || '';
-          el.style.fontWeight = styles.fontWeight || '';
-          el.style.fontStyle = styles.fontStyle || '';
-          el.style.textAlign = styles.textAlign || '';
-          el.style.verticalAlign = styles.verticalAlign || '';
-        }
-
-        // Step 4: Restore container dimensions
-        if (this.container) {
-          const dim = parsedData.dimensions || {};
-          const containerEl = this.container.nativeElement;
-          containerEl.style.width = dim.width || '';
-          containerEl.style.height = dim.height || '';
-        }
+        // Step 5: Trigger a forced refresh to update styleStateMap in GridsterWrapper
+        // We need to dispatch a custom event that the GridsterWrapper can listen to
+        setTimeout(() => {
+          const refreshEvent = new CustomEvent('restoreStyles', { 
+            detail: { 
+              textStyles: textStyles,
+              itemIds: this.items.filter(item => item.type === 'text').map(item => item.id)
+            } 
+          });
+          document.dispatchEvent(refreshEvent);
+        }, 50);
 
         // Hide the editor panel
         this.editorWrapper.nativeElement.classList.add('hidden');
 
         alert('Editor has been restored to the last saved state.');
-      });
+      }, 100); // Increased timeout to ensure DOM updates
 
     } catch (err) {
       console.error('Failed to parse saved editor data:', err);
@@ -222,6 +297,13 @@ export class EditorComponent implements AfterViewInit {
     }
   }
 
+  // Helper method to restore image links to GridsterWrapper
+  private restoreImageLinksToGridster(imageLinks: { [id: number]: string }): void {
+    const restoreLinksEvent = new CustomEvent('restoreImageLinks', {
+      detail: { imageLinks }
+    });
+    document.dispatchEvent(restoreLinksEvent);
+  }
 
   deleteItem(id: number): void {
     // Find the index of the item to delete
@@ -242,5 +324,4 @@ export class EditorComponent implements AfterViewInit {
   onImageUpdated(updatedMap: { [id: number]: string }): void {
     this.imageUrlMap = { ...updatedMap };
   }
-
 }

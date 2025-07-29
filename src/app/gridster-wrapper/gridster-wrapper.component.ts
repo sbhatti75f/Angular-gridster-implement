@@ -92,11 +92,34 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
         }
       }
     );
+
+    // Listen for style restoration events from EditorComponent
+    this.renderer.listen('document', 'restoreStyles', (event: CustomEvent) => {
+      const { textStyles, itemIds } = event.detail;
+      this.restoreStyleStates(textStyles, itemIds);
+    });
+
+    // Listen for image links request from EditorComponent (for saving)
+    this.renderer.listen('document', 'requestImageLinks', () => {
+      // Store image links in a temporary global variable for EditorComponent to access
+      (window as any).tempImageLinks = { ...this.imageLinkMap };
+    });
+
+    // Listen for image links restoration from EditorComponent (for discarding)
+    this.renderer.listen('document', 'restoreImageLinks', (event: CustomEvent) => {
+      const { imageLinks } = event.detail;
+      this.imageLinkMap = { ...imageLinks };
+    });
   }
 
   ngOnDestroy(): void {
     if (this.globalClickUnlisten) {
       this.globalClickUnlisten();
+    }
+    
+    // Clean up temporary storage
+    if ((window as any).tempImageLinks) {
+      delete (window as any).tempImageLinks;
     }
   }
 
@@ -136,6 +159,51 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  // New method to restore style states from saved data
+  restoreStyleStates(textStyles: { [id: number]: any }, itemIds: number[]): void {
+    itemIds.forEach(id => {
+      const savedStyles = textStyles[id];
+      if (savedStyles) {
+        // Convert CSS values back to component state format
+        const styleState = {
+          fontWeight: savedStyles.fontWeight === 'bold' ? 'bold' : 'normal',
+          fontStyle: savedStyles.fontStyle === 'italic' ? 'italic' : 'normal',
+          fontSize: this.convertPxToSize(savedStyles.fontSize),
+          textAlign: savedStyles.textAlign || 'left',
+          verticalAlign: this.convertJustifyToVertical(savedStyles.justifyContent),
+          color: savedStyles.color || '#000000',
+          backgroundColor: savedStyles.backgroundColor === 'transparent' ? '#ffffff' : savedStyles.backgroundColor,
+          borderColor: savedStyles.borderColor || '#cccccc',
+          link: '',
+          deleted: false,
+        };
+        
+        this.styleStateMap[id] = styleState;
+      }
+    });
+  }
+
+  // Helper method to convert px values back to size names
+  private convertPxToSize(pxValue: string): string {
+    const sizeMap: { [key: string]: string } = {
+      '12px': 'small',
+      '16px': 'medium', 
+      '24px': 'large',
+      '32px': 'xlarge'
+    };
+    return sizeMap[pxValue] || 'medium';
+  }
+
+  // Helper method to convert CSS justify-content back to vertical align names
+  private convertJustifyToVertical(justifyValue: string): string {
+    const alignMap: { [key: string]: string } = {
+      'flex-start': 'top',
+      'center': 'middle',
+      'flex-end': 'bottom'
+    };
+    return alignMap[justifyValue] || 'top';
+  }
+
   cleanUpState(id: number) {
     delete this.styleStateMap[id];
     delete this.editableDivMap[id];
@@ -160,5 +228,4 @@ export class GridsterWrapperComponent implements AfterViewInit, OnDestroy {
       this.imageUrlMap[id] = currentUrl;
     });
   }
-
 }
