@@ -7,12 +7,15 @@
   (click)="onFocus()"
 >
   <ng-container *ngIf="imageLink; else noLinkTemplate">
-    <a [href]="imageLink" target="_blank">
+    <a [href]="imageLink" target="_blank" class="image-link-wrapper">
       <img
         #imageRef
         class="displayed-image"
         [src]="imageUrl || fallbackImg"
         alt="Gridster Image"
+        (mouseenter)="onImageHover($event)"
+        (mousemove)="onImageHover($event)"
+        (mouseleave)="onImageLeave()"
       />
     </a>
   </ng-container>
@@ -25,6 +28,16 @@
       alt="Gridster Image"
     />
   </ng-template>
+
+  <!-- Tooltip for linked images -->
+  <div 
+    *ngIf="showTooltip && imageLink" 
+    class="link-tooltip"
+    [style.left.px]="tooltipPosition.x"
+    [style.top.px]="tooltipPosition.y"
+  >
+    <b>Go to </b>{{ getLinkDisplayName() }}
+  </div>
 
   <span *ngIf="!imageUrl" class="placeholder">No image available</span>
 </div>
