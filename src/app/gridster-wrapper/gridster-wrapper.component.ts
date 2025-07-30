@@ -1,4 +1,3 @@
-// src/app/gridster-wrapper/gridster-wrapper.component.ts
 import {
   Component,
   Input,

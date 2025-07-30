@@ -1,4 +1,3 @@
-// src/app/text-bar/text-bar.component.ts
 import {
   Component,
   ViewChild,
@@ -39,7 +38,7 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
   selectedBorderColor = '#cccccc';
   selectedTextAlign = 'left';
   selectedVerticalAlign = 'top';
-  selectedFontSize = 'medium'; // Matches your data-size values
+  selectedFontSize = 'medium';
 
   // UI state for dropdowns and color pickers
   showTextColorInput = false;
@@ -56,7 +55,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     small: '12px',
     medium: '16px',
     large: '24px',
-    xlarge: '32px' // Add 'xlarge' if you plan to use it. Your HTML had only small, medium, large.
   };
 
   constructor(private renderer: Renderer2, private elRef: ElementRef) {}
@@ -82,7 +80,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Handle changes to editableDiv itself, e.g., if it's assigned later
     if (changes['editableDiv'] && this.editableDiv?.nativeElement && this.styleState) {
       // Re-apply styles and setup listeners if editableDiv changes
-      // this.setupSvgClickToggles(); // REMOVED: No longer needed/conflicting
       this.applyStyleStateToEditableDiv(this.styleState);
       this.updateSvgColors();
       this.setupEditableDivListeners();
@@ -137,35 +134,30 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
   /**
    * Applies the styleState to the actual content editable div.
    * This ensures the visual representation of the text matches the saved state.
+   * This handles container-level styles like alignment and default font size/colors.
    */
   private applyStyleStateToEditableDiv(state: any): void {
     const editable = this.editableDiv?.nativeElement;
     if (!editable) return;
 
-    editable.style.fontWeight = state.fontWeight || 'normal';
-    editable.style.fontStyle = state.fontStyle || 'normal';
-    editable.style.fontSize = this.fontSizeMap[state.fontSize || 'medium'];
+    // Apply container-level styles
     editable.style.textAlign = state.textAlign || 'left';
-    editable.style.color = state.color || '#000000';
     editable.style.backgroundColor = state.backgroundColor || '#ffffff';
     editable.style.borderColor = state.borderColor || '#cccccc';
+    editable.style.borderStyle = state.borderColor ? 'solid' : 'none'; // Ensure border style is set if color exists
+    editable.style.borderWidth = state.borderColor ? '1px' : '0'; // Ensure border width is set if color exists
 
     // Ensure flex properties for vertical alignment are set consistently
     editable.style.display = 'flex';
     editable.style.flexDirection = 'column';
     editable.style.justifyContent = this.getFlexValue(state.verticalAlign || 'top');
+
+    // For font size, color, bold, italic, these are handled by execCommand on inner content.
+    // However, if the div is empty, we need a default style for new text.
+    // This is often implicitly handled by execCommand setting typing attributes,
+    // but a default can be set here if the div is initially empty and no inner spans exist.
+    // It's generally better to let execCommand manage this for contenteditable.
   }
-
-  // REMOVED: This method is conflicting with [ngClass] and Angular's change detection
-  // private setupSvgClickToggles(): void {
-  //   const icons = document.querySelectorAll('.svg-default');
-  //   icons.forEach(icon => {
-  //     this.renderer.listen(icon, 'click', (e: Event) => {
-  //       icon.classList.toggle('active');
-  //     });
-  //   });
-  // }
-
 
   /**
    * Updates SVG icon colors based on the current selectedColor.
@@ -183,10 +175,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
       }
     }
 
-    // Update dash icons fill color
-    // This part still relies on global query selector for SVG dashes by ID
-    // If these dashes are within *this specific component's template*, you should use @ViewChild for them too.
-    // Assuming they are global or fixed and always appear together:
     const dashIds = ['dash1', 'dash2', 'dash3', 'dash4', 'dash5', 'dash6'];
     dashIds.forEach(id => {
       const dashSvg = document.getElementById(id);
@@ -197,19 +185,19 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Emits the current style state up to the parent component (GridsterWrapperComponent).
-   */
+  /*
+    Emits the current style state up to the parent component (GridsterWrapperComponent).
+    This includes only container-level styles that apply to the whole text box.
+    Inline text styles (bold, italic, font size, text color, background color) are managed by the contenteditable itself.
+  */
   private emitStyleState(): void {
     this.styleChanged.emit({
-      fontWeight: this.isBoldActive ? 'bold' : 'normal',
-      fontStyle: this.isItalicActive ? 'italic' : 'normal',
-      fontSize: this.selectedFontSize,
-      color: this.selectedColor,
-      backgroundColor: this.selectedBackgroundColor,
-      borderColor: this.selectedBorderColor,
       textAlign: this.selectedTextAlign,
-      verticalAlign: this.selectedVerticalAlign
+      verticalAlign: this.selectedVerticalAlign,
+      backgroundColor: this.selectedBackgroundColor,
+      borderColor: this.selectedBorderColor
+      // Note: Bold, italic, font size, text color are now managed by inline styles within the contenteditable,
+      // not as a single global styleState. We still track them for UI active states.
     });
   }
 
@@ -224,11 +212,14 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
 
     const editable = this.editableDiv.nativeElement;
 
+    // Use input and keyup to capture changes and update UI active states
     this.clickListeners.push(this.renderer.listen(editable, 'mouseup', () => {
       this.saveSelection();
+      this.updateActiveStatesBasedOnSelection(); // Update bold/italic/color for UI
     }));
     this.clickListeners.push(this.renderer.listen(editable, 'keyup', () => {
       this.saveSelection();
+      this.updateActiveStatesBasedOnSelection(); // Update bold/italic/color for UI
     }));
     this.clickListeners.push(this.renderer.listen(editable, 'click', (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -240,59 +231,228 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     }));
   }
 
+  /**
+   * Updates the UI (isBoldActive, isItalicActive, selectedColor) based on the current selection's styles.
+   * This provides feedback to the user about the styles at the caret or on selected text.
+   */
+  private updateActiveStatesBasedOnSelection(): void {
+    const editable = this.editableDiv.nativeElement;
+    const selection = window.getSelection();
+
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      let commonAncestor: Node | null = null;
+
+      if (selection.isCollapsed) {
+        // If collapsed, check parent element at caret
+        commonAncestor = range.startContainer.nodeType === Node.ELEMENT_NODE ? range.startContainer : range.startContainer.parentNode;
+      } else {
+        // If selection exists, check common ancestor
+        commonAncestor = range.commonAncestorContainer;
+      }
+
+      if (commonAncestor && commonAncestor !== editable) {
+        // Traverse up to find effective styles
+        let currentElement: HTMLElement | null = commonAncestor instanceof HTMLElement ? commonAncestor : commonAncestor.parentElement;
+        this.isBoldActive = false;
+        this.isItalicActive = false;
+        this.selectedColor = '#000000'; // Default
+        this.selectedBackgroundColor = '#ffffff'; // Default
+        this.selectedFontSize = 'medium'; // Default
+
+        while (currentElement && currentElement !== editable) {
+          const computedStyle = window.getComputedStyle(currentElement);
+          const inlineStyle = currentElement.style; // Direct inline styles
+
+          // Check bold/italic
+          if (inlineStyle.fontWeight === 'bold' || computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight, 10) >= 700) {
+            this.isBoldActive = true;
+          }
+          if (inlineStyle.fontStyle === 'italic' || computedStyle.fontStyle === 'italic') {
+            this.isItalicActive = true;
+          }
+
+          // Check text color
+          if (inlineStyle.color) { // Prioritize inline style
+            this.selectedColor = this.rgbToHex(inlineStyle.color);
+          } else if (computedStyle.color && computedStyle.color !== 'rgb(0, 0, 0)') {
+            this.selectedColor = this.rgbToHex(computedStyle.color);
+          }
+
+          // Check background color
+          if (inlineStyle.backgroundColor) { // Prioritize inline style
+            this.selectedBackgroundColor = this.rgbToHex(inlineStyle.backgroundColor);
+          } else if (computedStyle.backgroundColor && computedStyle.backgroundColor !== 'rgb(0, 0, 0)' && computedStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+            this.selectedBackgroundColor = this.rgbToHex(computedStyle.backgroundColor);
+          }
+
+          // Check font size
+          let currentFontSizePx = '';
+          if (inlineStyle.fontSize) { // Prioritize inline style
+            currentFontSizePx = inlineStyle.fontSize;
+          } else if (computedStyle.fontSize) {
+            currentFontSizePx = computedStyle.fontSize;
+          }
+
+          if (currentFontSizePx) {
+            // Find the key in fontSizeMap that matches the pixel value
+            const matchedSizeKey = Object.keys(this.fontSizeMap).find(key => this.fontSizeMap[key] === currentFontSizePx);
+            if (matchedSizeKey) {
+              this.selectedFontSize = matchedSizeKey;
+            } else {
+              // If it doesn't match predefined, default or keep current if it's already an explicit px size
+              // For robustness, could try to parse px value and categorize. For now, default to 'medium'.
+              this.selectedFontSize = 'medium';
+            }
+          }
+
+          currentElement = currentElement.parentElement;
+        }
+      } else {
+        // No selection or selection is directly in the editable div, reset active states
+        this.isBoldActive = false;
+        this.isItalicActive = false;
+        this.selectedColor = '#000000';
+        this.selectedBackgroundColor = '#ffffff';
+        this.selectedFontSize = 'medium';
+      }
+    } else {
+      // No selection at all, reset to default states
+      this.isBoldActive = false;
+      this.isItalicActive = false;
+      this.selectedColor = '#000000';
+      this.selectedBackgroundColor = '#ffffff';
+      this.selectedFontSize = 'medium';
+    }
+    this.updateSvgColors(); // Update SVG color based on selectedColor state
+  }
+
+  // Helper to convert RGB to Hex for color picker display
+  private rgbToHex(rgb: string): string {
+    const rgba = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.?\d*))?\)$/);
+    if (!rgba) return rgb; // Return original if not valid rgb/rgba
+
+    const r = parseInt(rgba[1], 10);
+    const g = parseInt(rgba[2], 10);
+    const b = parseInt(rgba[3], 10);
+
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // General purpose function for applying text styles using document.execCommand
+  private applyTextStyle(command: string, value?: string): void {
+    this.restoreSelection(); // Restore previous selection or set focus
+    const editable = this.editableDiv.nativeElement;
+    editable.focus(); // Ensure the div is focused for execCommand to work
+
+    try {
+      // Always ensure that styling is applied using CSS, not HTML tags
+      document.execCommand('styleWithCSS', false, 'true');
+      // Apply the command (e.g., 'bold', 'italic', 'foreColor', 'backColor')
+      document.execCommand(command, false, value);
+    } catch (e) {
+      console.warn(`execCommand failed for ${command}.`, e);
+    }
+    this.saveSelection(); // Save selection after command
+  }
+
   toggleBold(): void {
-    this.isBoldActive = !this.isBoldActive;
-    this.applyTextStyle('fontWeight', this.isBoldActive ? 'bold' : 'normal');
-    this.emitStyleState();
+    this.isBoldActive = !this.isBoldActive; // Toggle UI state immediately for responsiveness
+    this.applyTextStyle('bold');
+    // We don't emit for inline styles, as they are part of the content editable's HTML
   }
 
   toggleItalic(): void {
-    this.isItalicActive = !this.isItalicActive;
-    this.applyTextStyle('fontStyle', this.isItalicActive ? 'italic' : 'normal');
-    this.emitStyleState();
+    this.isItalicActive = !this.isItalicActive; // Toggle UI state immediately
+    this.applyTextStyle('italic');
+    // We don't emit for inline styles
   }
 
   changeFontSize(size: string, event: MouseEvent): void {
-    event.stopPropagation(); // Prevent event from bubbling up
+    event.stopPropagation();
     this.selectedFontSize = size;
     const pxSize = this.fontSizeMap[size] || '16px';
-    this.editableDiv.nativeElement.style.fontSize = pxSize;
+
+    this.restoreSelection();
+    const editable = this.editableDiv.nativeElement;
+    editable.focus();
+
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const span = this.renderer.createElement('span');
+      this.renderer.setStyle(span, 'font-size', pxSize);
+      // Explicitly set display to inline to prevent line breaks
+      this.renderer.setStyle(span, 'display', 'inline');
+
+      if (!selection.isCollapsed) {
+        // Apply to selected text: extract content into span
+        this.renderer.appendChild(span, range.extractContents());
+        range.deleteContents(); // Remove original content
+        range.insertNode(span); // Insert the new span
+        selection.removeAllRanges();
+        // Restore selection around the newly styled span to keep it selected
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span); // Select the contents of the span
+        selection.addRange(newRange);
+      } else {
+        // Apply to next typed text: insert a zero-width space to hold the style
+        // Check if cursor is already inside a span with the desired font size
+        const parentNode = selection.anchorNode?.parentElement;
+        if (parentNode && parentNode.tagName === 'SPAN' && parentNode.style.fontSize === pxSize) {
+          // Cursor is already in a span with this font size, no need to add new span
+        } else {
+          // If the current container is the editable div itself and it's empty
+          // or if the cursor is at the very beginning of the editable div's content
+          if (range.startContainer === editable && editable.childNodes.length === 0 ||
+              (range.startContainer === editable && range.startOffset === 0 && editable.firstChild?.nodeType === Node.TEXT_NODE)) {
+            this.renderer.appendChild(span, this.renderer.createText('\u200B'));
+            this.renderer.appendChild(editable, span);
+            selection.collapse(span, 1); // Collapse after ZWS inside the span
+          } else {
+            // Otherwise, insert at the current cursor position
+            this.renderer.appendChild(span, this.renderer.createText('\u200B')); // Zero-width space
+            range.insertNode(span);
+            selection.collapse(span, 1); // Place cursor inside (after ZWS) the span for next typing
+          }
+        }
+      }
+    }
     this.isTextSizeDropdownOpen = false; // Close the dropdown
-    this.emitStyleState();
+    this.saveSelection(); // Save selection after operation
   }
 
   changeTextColor(color: string, event?: Event): void {
     if (event) {
-      event.stopPropagation(); 
+      event.stopPropagation();
     }
-    this.selectedColor = color;
-    this.applyTextStyle('color', color);
-    this.updateSvgColors();
-    this.emitStyleState();
-    this.showTextColorInput = false; 
+    this.selectedColor = color; // Update UI state
+    this.applyTextStyle('foreColor', color); // Use execCommand for text color
+    this.updateSvgColors(); // Update SVG color
+    this.showTextColorInput = false;
   }
 
   changeBackgroundColor(color: string, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
-    this.selectedBackgroundColor = color;
-    this.editableDiv.nativeElement.style.backgroundColor = color;
-    this.emitStyleState();
-    this.showBackColorInput = false; 
+    this.selectedBackgroundColor = color; // Update UI state
+    this.applyTextStyle('backColor', color); // Use execCommand for text background color
+    this.showBackColorInput = false;
   }
 
   changeBorderColor(color: string, event?: Event): void {
     if (event) event.stopPropagation();
-    this.selectedBorderColor = color;
-    
+    this.selectedBorderColor = color; // Update UI state
+
     const editable = this.editableDiv.nativeElement;
 
+    // Border is typically a block-level style, so apply to the entire editable div
     editable.style.borderStyle = 'solid';
     editable.style.borderWidth = '1px';
     editable.style.borderColor = color;
-    
-    this.emitStyleState();
+
+    this.emitStyleState(); // Emit state as this is a container-level style
     this.showBorderColorInput = false;
   }
 
@@ -301,7 +461,7 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.selectedTextAlign = align;
     this.editableDiv.nativeElement.style.textAlign = align;
     this.isAlignmentDropdownOpen = false;
-    this.emitStyleState();
+    this.emitStyleState(); // Emit state as this is a container-level style
   }
 
   changeVerticalAlign(align: string, event: MouseEvent): void {
@@ -312,7 +472,7 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     editable.style.flexDirection = 'column';
     editable.style.justifyContent = this.getFlexValue(align);
     this.isVerticalAlignmentDropdownOpen = false;
-    this.emitStyleState();
+    this.emitStyleState(); // Emit state as this is a container-level style
   }
 
   private getFlexValue(val: string): string {
@@ -325,8 +485,11 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   saveSelection(): void {
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
+    // Only save selection if it's within our editable div
+    if (sel && sel.rangeCount > 0 && this.editableDiv?.nativeElement.contains(sel.anchorNode)) {
       this.savedSelection = sel.getRangeAt(0);
+    } else {
+      this.savedSelection = null; // Clear if no selection or selection is outside the editable div
     }
   }
 
@@ -335,6 +498,11 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
       const selection = window.getSelection();
       selection?.removeAllRanges();
       selection?.addRange(this.savedSelection);
+      // Ensure the contenteditable div has focus after restoring selection
+      this.editableDiv.nativeElement.focus();
+    } else {
+      // If no saved selection, just focus the editable div
+      this.editableDiv.nativeElement.focus();
     }
   }
 
@@ -352,46 +520,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.showBorderColorInput = !this.showBorderColorInput;
       this.showTextColorInput = false;
       this.showBackColorInput = false;
-    }
-  }
-
-  /**
-   * Applies text style to the selected content or the entire editable div.
-   * This method uses `document.execCommand` for basic formatting,
-   * but also provides a fallback for more complex scenarios or if execCommand isn't suitable.
-   */
-  private applyTextStyle(styleProperty: string, styleValue: string): void {
-    this.restoreSelection();
-    const editable = this.editableDiv.nativeElement;
-    editable.focus();
-
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-      // If no selection or collapsed, apply to the entire editable div
-      (editable.style as any)[styleProperty] = styleValue;
-    } else {
-      // If there's a selection, apply to the selected range using execCommand or span wrapper
-      try {
-        // Enable CSS styling for execCommand
-        document.execCommand('styleWithCSS', false, 'true');
-        if (styleProperty === 'fontWeight') {
-          document.execCommand('bold', false, undefined);
-        } else if (styleProperty === 'fontStyle') {
-          document.execCommand('italic', false, undefined);
-        } else if (styleProperty === 'color') {
-          document.execCommand('foreColor', false, styleValue);
-        }
-      } catch (e) {
-        // Fallback: If execCommand is not sufficient or fails, wrap in a span
-        const range = selection.getRangeAt(0);
-        const span = this.renderer.createElement('span');
-        this.renderer.setStyle(span, styleProperty, styleValue);
-        this.renderer.appendChild(span, range.extractContents()); // Move selected content into span
-        range.deleteContents(); // Remove original content
-        range.insertNode(span); // Insert the new span
-        selection.removeAllRanges();
-        selection.addRange(range); // Restore selection to the new content
-      }
     }
   }
 
@@ -428,7 +556,7 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     newRange.collapse(true);
     selection.addRange(newRange);
 
-    this.emitStyleState(); // Emit state to save link info if needed (though link content is in div)
+    this.saveSelection(); // Save selection after link insertion
   }
 
   onDeleteClick(): void {
