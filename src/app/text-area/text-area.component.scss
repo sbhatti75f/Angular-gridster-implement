@@ -9,21 +9,29 @@
   z-index: 1;
 }
 
-.editable-div {
+/* The new wrapper is now the flex container */
+.alignment-wrapper {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
+}
+
+.editable-div {
+  /* REMOVED height: 100% from here */
+  width: 100%; 
   border: none;
   outline: none;
-  background: transparent;
+  background: transparent; /* This must be transparent to see the parent's background */
   font-family: 'Roboto', sans-serif;
   font-weight: 500;
-  font-size: 16px; /* Change this from 13px to 16px */
+  font-size: 16px; 
   line-height: 1.5;
   color: #333;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow: auto;
-  display: block;
+  display: block; 
   text-align: left; 
 }
 
