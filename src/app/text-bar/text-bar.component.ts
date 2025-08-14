@@ -390,6 +390,8 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (type !== 'border') this.showBorderColorInput = false;
   }
 
+  // text-bar.component.ts
+
   insertLink(): void {
     this.restoreSelection();
     const selection = window.getSelection();
@@ -400,9 +402,18 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     const url = prompt('Enter the URL to link to:');
-    if (!url) return;
+    if (!url) {
+      return; // User cancelled the prompt
+    }
 
-    this.applyTextStyle('createLink', url);
+    // ✅ SOLUTION: Check for a protocol and add it if missing.
+    let fullUrl = url;
+    if (!/^https?:\/\//i.test(url)) {
+      fullUrl = 'https://' + url;
+    }
+
+    // Use the new, corrected URL.
+    this.applyTextStyle('createLink', fullUrl);
   }
 
   onDeleteClick(): void {
