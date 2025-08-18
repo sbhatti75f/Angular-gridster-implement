@@ -163,15 +163,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.renderer.setAttribute(useTag, 'fill', this.selectedColor);
       }
     }
-
-    const dashIds = ['dash1', 'dash2', 'dash3', 'dash4', 'dash5', 'dash6'];
-    dashIds.forEach(id => {
-      const dashSvg = document.getElementById(id);
-      const useEl = dashSvg?.querySelector('use');
-      if (useEl) {
-        this.renderer.setAttribute(useEl, 'fill', this.selectedColor);
-      }
-    });
   }
 
   private emitStyleState(): void {
@@ -389,8 +380,6 @@ export class TextBarComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (type !== 'background') this.showBackColorInput = false;
     if (type !== 'border') this.showBorderColorInput = false;
   }
-
-  // text-bar.component.ts
 
   insertLink(): void {
     this.restoreSelection();

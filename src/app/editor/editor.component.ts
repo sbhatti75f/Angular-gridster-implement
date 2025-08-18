@@ -183,7 +183,7 @@ export class EditorComponent implements AfterViewInit {
     const imageLinks = this.getImageLinksFromGridster();
 
     const editorData = {
-      gridItems: this.items, // This now includes content for text items
+      gridItems: this.items, // content for text items
       imageUrls: this.imageUrlMap,
       textContents: textContents, // Separate mapping for text contents
       textStyles: textStyles, // Save all styling information
