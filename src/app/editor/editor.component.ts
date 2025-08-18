@@ -155,25 +155,47 @@ export class EditorComponent implements AfterViewInit {
         const textElements = document.querySelectorAll(`[data-text-id="${item.id}"] .editable-div`);
         if (textElements.length > 0) {
           const editableDiv = textElements[0] as HTMLElement;
+          const alignmentWrapper = editableDiv.parentElement as HTMLElement;
+          const mainContainer = alignmentWrapper?.parentElement as HTMLElement;
+          
           textContents[item.id] = editableDiv.innerHTML || '';
           // Also update the item's content property
           item.content = editableDiv.innerHTML || '';
           
           // Capture all computed and applied styles
           const computedStyle = window.getComputedStyle(editableDiv);
+          const wrapperComputedStyle = alignmentWrapper ? window.getComputedStyle(alignmentWrapper) : null;
+          const containerComputedStyle = mainContainer ? window.getComputedStyle(mainContainer) : null;
+          
+          // Convert justify-content to verticalAlign for proper storage
+          const justifyContent = wrapperComputedStyle?.justifyContent || alignmentWrapper?.style.justifyContent || 'flex-start';
+          let verticalAlign = 'top';
+          switch (justifyContent) {
+            case 'center':
+              verticalAlign = 'middle';
+              break;
+            case 'flex-end':
+              verticalAlign = 'bottom';
+              break;
+            default:
+              verticalAlign = 'top';
+              break;
+          }
+          
           textStyles[item.id] = {
             fontWeight: editableDiv.style.fontWeight || computedStyle.fontWeight || 'normal',
             fontStyle: editableDiv.style.fontStyle || computedStyle.fontStyle || 'normal',
             fontSize: editableDiv.style.fontSize || computedStyle.fontSize || '16px',
             textAlign: editableDiv.style.textAlign || computedStyle.textAlign || 'left',
             color: editableDiv.style.color || computedStyle.color || '#000000',
-            backgroundColor: editableDiv.style.backgroundColor || computedStyle.backgroundColor || 'transparent',
-            borderColor: editableDiv.style.borderColor || computedStyle.borderColor || '#cccccc',
-            borderStyle: editableDiv.style.borderStyle || computedStyle.borderStyle || 'none',
-            borderWidth: editableDiv.style.borderWidth || computedStyle.borderWidth || '0px',
+            backgroundColor: mainContainer?.style.backgroundColor || containerComputedStyle?.backgroundColor || 'transparent',
+            borderColor: mainContainer?.style.borderColor || containerComputedStyle?.borderColor || '#cccccc',
+            borderStyle: mainContainer?.style.borderStyle || containerComputedStyle?.borderStyle || 'none',
+            borderWidth: mainContainer?.style.borderWidth || containerComputedStyle?.borderWidth || '0px',
             display: editableDiv.style.display || computedStyle.display || 'block',
-            flexDirection: editableDiv.style.flexDirection || computedStyle.flexDirection || 'column',
-            justifyContent: editableDiv.style.justifyContent || computedStyle.justifyContent || 'flex-start'
+            flexDirection: alignmentWrapper?.style.flexDirection || wrapperComputedStyle?.flexDirection || 'column',
+            justifyContent: alignmentWrapper?.style.justifyContent || wrapperComputedStyle?.justifyContent || 'flex-start',
+            verticalAlign: verticalAlign // Store the converted vertical alignment
           };
         }
       }
@@ -186,7 +208,7 @@ export class EditorComponent implements AfterViewInit {
       gridItems: this.items, // content for text items
       imageUrls: this.imageUrlMap,
       textContents: textContents, // Separate mapping for text contents
-      textStyles: textStyles, // Save all styling information
+      textStyles: textStyles, // Save all styling information including proper verticalAlign
       imageLinks: imageLinks // Save image links
     };
 
@@ -254,21 +276,48 @@ export class EditorComponent implements AfterViewInit {
             const textElements = document.querySelectorAll(`[data-text-id="${item.id}"] .editable-div`);
             if (textElements.length > 0) {
               const editableDiv = textElements[0] as HTMLElement;
+              const alignmentWrapper = editableDiv.parentElement as HTMLElement;
+              const mainContainer = alignmentWrapper?.parentElement as HTMLElement;
+              
               editableDiv.innerHTML = savedContent;
               
-              // Restore all saved styles
+              // Restore text-specific styles to editableDiv
               if (savedStyles.fontWeight) editableDiv.style.fontWeight = savedStyles.fontWeight;
               if (savedStyles.fontStyle) editableDiv.style.fontStyle = savedStyles.fontStyle;
               if (savedStyles.fontSize) editableDiv.style.fontSize = savedStyles.fontSize;
               if (savedStyles.textAlign) editableDiv.style.textAlign = savedStyles.textAlign;
               if (savedStyles.color) editableDiv.style.color = savedStyles.color;
-              if (savedStyles.backgroundColor) editableDiv.style.backgroundColor = savedStyles.backgroundColor;
-              if (savedStyles.borderColor) editableDiv.style.borderColor = savedStyles.borderColor;
-              if (savedStyles.borderStyle) editableDiv.style.borderStyle = savedStyles.borderStyle;
-              if (savedStyles.borderWidth) editableDiv.style.borderWidth = savedStyles.borderWidth;
-              if (savedStyles.display) editableDiv.style.display = savedStyles.display;
-              if (savedStyles.flexDirection) editableDiv.style.flexDirection = savedStyles.flexDirection;
-              if (savedStyles.justifyContent) editableDiv.style.justifyContent = savedStyles.justifyContent;
+              
+              // Restore container styles to mainContainer
+              if (mainContainer) {
+                if (savedStyles.backgroundColor) mainContainer.style.backgroundColor = savedStyles.backgroundColor;
+                if (savedStyles.borderColor) mainContainer.style.borderColor = savedStyles.borderColor;
+                if (savedStyles.borderStyle) mainContainer.style.borderStyle = savedStyles.borderStyle;
+                if (savedStyles.borderWidth) mainContainer.style.borderWidth = savedStyles.borderWidth;
+              }
+              
+              // Restore vertical alignment to alignmentWrapper
+              if (alignmentWrapper) {
+                if (savedStyles.flexDirection) alignmentWrapper.style.flexDirection = savedStyles.flexDirection;
+                if (savedStyles.justifyContent) {
+                  alignmentWrapper.style.justifyContent = savedStyles.justifyContent;
+                } else if (savedStyles.verticalAlign) {
+                  // Convert verticalAlign back to justify-content
+                  let justifyContent = 'flex-start';
+                  switch (savedStyles.verticalAlign) {
+                    case 'middle':
+                      justifyContent = 'center';
+                      break;
+                    case 'bottom':
+                      justifyContent = 'flex-end';
+                      break;
+                    default:
+                      justifyContent = 'flex-start';
+                      break;
+                  }
+                  alignmentWrapper.style.justifyContent = justifyContent;
+                }
+              }
             }
           }
         });
